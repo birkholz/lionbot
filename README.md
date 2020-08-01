@@ -4,9 +4,10 @@ _A discord bot for Northernlion's subscriber server that helps keep his subscrib
 
 ### Goals
 
-* [ ] Per-series/twitch role management for notifications (via reactions)
+* [x] Per-series/twitch role management for notifications (via reactions)
 * [ ] YouTube video upload notifications to per-series channels (e.g. NL tries goes to #nl-tries)
-* [ ] Twitch live notifications
+* [ ] Twitch live notifications (requires a web process to accept webhooks https://dev.twitch.tv/docs/api/webhooks-guide)
+* [ ] A way for server moderators/admins to manage the bot
 
 #### Role Management
 
