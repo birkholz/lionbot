@@ -2,7 +2,7 @@ import logging
 import os
 
 import discord
-from sqlalchemy import create_engine, or_
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from data import Guild, seed_data, Stream
@@ -25,7 +25,7 @@ class LionBot(discord.Client):
         self.init_guild(disc_guild)
 
     def init_guild(self, disc_guild):
-        guild = session.Query(Guild).filter_by(id=disc_guild.id).first()
+        guild = session.query(Guild).filter_by(id=disc_guild.id).first()
         if guild is None:
             guild = Guild(id=disc_guild.id, name=disc_guild.name)
             session.add(guild)
@@ -40,7 +40,7 @@ class LionBot(discord.Client):
                 logging.error(f"Role not found: {seed['role']}")
                 continue
 
-            stream = session.query(Stream).filter_by(guild_id=channel.guild.id, channel_id=channel.id)
+            stream = session.query(Stream).filter_by(guild_id=channel.guild.id, channel_id=channel.id).first()
             if stream:
                 stream.description = seed['desc']
                 stream.emoji = seed['emoji']

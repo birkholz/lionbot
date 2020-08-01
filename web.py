@@ -1,37 +1,38 @@
 import os
 
 import feedparser
-import redis
 import requests
 from flask import Flask, request
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-from data import get_streams
+from data import Stream
 
 app = Flask(__name__)
 
-redis_client = redis.Redis.from_url(os.environ.get("REDIS_URL"))
-
+engine = create_engine(os.environ.get('DATABASE_URL'))
+Session = sessionmaker(bind=engine)
+session = Session()
 
 def send_message(title, link):
-    streams = get_streams()
-    channel = None
-    for stream in streams:
-        if stream['name_contains'] in title:
-            channel = stream['channel']
+    for stream in session.query(Stream).all():
+        if stream.title_contains is not None and stream.title_contains in title:
+            channel_id = stream.channel_id
+            message_url = f"https://discordapp.com/api/channels/{channel_id}/messages"
+            headers = {
+                "Authorization": f"Bot {os.environ.get('DISCORD_TOKEN')}",
+                "Content-Type": "application/json",
+            }
 
-    if not channel:
-        return
+            content = f"<@&{stream.role_id}>\n{link}"
 
-
-
-    message_url = f"https://discordapp.com/api/channels/{int(redis_client.get('role_channel_id'))}/messages"
-    headers = {
-        "Authorization": f"Bot {os.environ.get('DISCORD_TOKEN')}",
-        "Content-Type": "application/json",
-    }
-
-    requests.post(message_url, headers=headers, json={"content": link})
-
+            json_body = {
+                "content": content,
+                "allowed_mentions": {
+                    "parse": ["roles"]
+                }
+            }
+            requests.post(message_url, headers=headers, json=json_body)
 
 @app.route('/youtube/webhook', methods=['POST'])
 def youtube_webhook():
