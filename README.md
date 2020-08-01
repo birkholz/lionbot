@@ -9,7 +9,10 @@ _A discord bot for Northernlion's subscriber server that helps keep his subscrib
 * [ ] Twitch live notifications
 
 #### Role Management
-In the `#roles` channel, the bot has messages posted. On each message, there is a single reaction. Clicking the reaction (i.e., incrementing the reaction) causes the bot to add a role to the user. Clicking the reaction again (to decrement) will remove the role from the user.
+
+Type `!lion roles ` in a channel. The bot will post a message informing users they can react to the message to change their roles.
+These roles will be used for @ mentions when videos are posted or NL goes live on Twitch.
+If a user does not want to be mentioned anymore, they can remove their reaction from the message to remove the role from themselves. 
 
 ### Commands
 
