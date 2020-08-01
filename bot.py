@@ -130,5 +130,6 @@ class LionBot(discord.Client):
             await message.delete()
             await self.send_role_message(message.channel)
 
+
 discord_client = LionBot()
 discord_client.run(os.environ.get('DISCORD_TOKEN'))
