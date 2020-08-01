@@ -1,0 +1,5 @@
+.git
+*.pyc
+.env
+.vscode
+.idea
