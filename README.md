@@ -11,9 +11,11 @@ _A discord bot for Northernlion's subscriber server that helps keep his subscrib
 
 #### Role Management
 
+* In order for the bot to assign roles, its role must be higher in the role list than all the roles it will need to change (so put it beneath admin/moderator, but above all notifier roles)
+
 Type `!lion roles ` in a channel. The bot will post a message informing users they can react to the message to change their roles.
 These roles will be used for @ mentions when videos are posted or NL goes live on Twitch.
-If a user does not want to be mentioned anymore, they can remove their reaction from the message to remove the role from themselves. 
+If a user does not want to be mentioned anymore, they can re-react to the message to remove the role from themselves. 
 
 ### Commands
 
