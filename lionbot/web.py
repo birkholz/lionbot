@@ -97,7 +97,7 @@ def twitch_webhook():
         return '', 405
 
     hash = hashlib.sha256(os.environb.get(b"TWITCH_WEBHOOK_SECRET") + request.get_data())
-    if request.headers['X-Hub-Signature'] != hash.hexdigest():
+    if request.headers['X-Hub-Signature'] != f'sha256={hash.hexdigest()}':
         raise ValidationException(source="Twitch", sha=request.headers['X-Hub-Signature'], body=request.get_data())
     json_body = request.get_json()
     event = json_body['data'][0]
