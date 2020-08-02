@@ -4,6 +4,7 @@ import os
 import feedparser
 import requests
 from flask import Flask, request
+from sentry_sdk import configure_scope
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -41,7 +42,11 @@ def send_youtube_message(title, link):
             }
             response = requests.post(message_url, headers=headers, json=json_body)
             if not status_successful(response.status_code):
-                raise DiscordError(response.content, json_body)
+                with configure_scope() as scope:
+                    scope.set_extra("source", "Discord")
+                    scope.set_extra("request.body", json_body)
+                    scope.set_extra("response.body", response.content)
+                    raise DiscordError()
 
 
 @app.route('/youtube/webhook', methods=['GET', 'POST'])
@@ -85,7 +90,11 @@ def send_twitch_message(title, thumbnail_url):
         }
         response = requests.post(message_url, headers=headers, json=json_body)
         if not status_successful(response.status_code):
-            raise DiscordError(response.content, json_body)
+            with configure_scope() as scope:
+                scope.set_extra("source", "Discord")
+                scope.set_extra("request.body", json_body)
+                scope.set_extra("response.body", response.content)
+                raise DiscordError()
 
 
 @app.route('/twitch/webhook', methods=['GET', 'POST'])
@@ -98,7 +107,11 @@ def twitch_webhook():
 
     hash = hashlib.sha256(os.environb.get(b"TWITCH_WEBHOOK_SECRET") + request.get_data())
     if request.headers['X-Hub-Signature'] != f'sha256={hash.hexdigest()}':
-        raise ValidationException(source="Twitch", sha=request.headers['X-Hub-Signature'], body=request.get_data())
+        with configure_scope() as scope:
+            scope.set_extra("source", "Twitch")
+            scope.set_extra("sha", request.headers['X-Hub-Signature'])
+            scope.set_extra("body", request.get_data())
+            raise ValidationException()
     json_body = request.get_json()
     event = json_body['data'][0]
     if event['type'] == 'live':

@@ -1,6 +1,7 @@
 import os
 
 import requests
+from sentry_sdk import configure_scope
 
 from lionbot.errors import SubscriptionError, AuthenticationError
 from lionbot.utils import status_successful, init_sentry
@@ -17,7 +18,11 @@ def subscribe_to_youtube():
     }
     response = requests.post(url, data=data)
     if not status_successful(response.status_code):
-        raise SubscriptionError("YouTube", response.content)
+        with configure_scope() as scope:
+            scope.set_extra("source", "YouTube")
+            scope.set_extra("request.body", data)
+            scope.set_extra("response.body", response.content)
+            raise SubscriptionError()
 
 
 def get_twitch_access_token():
@@ -29,7 +34,11 @@ def get_twitch_access_token():
     }
     response = requests.post(url, params=body)
     if not status_successful(response.status_code):
-        raise AuthenticationError("Twitch", response.content)
+        with configure_scope() as scope:
+            scope.set_extra("source", "Twitch")
+            scope.set_extra("request.body", body)
+            scope.set_extra("response.body", response.content)
+            raise AuthenticationError()
     access_token = response.json()['access_token']
     return access_token
 
@@ -53,7 +62,11 @@ def subscribe_to_twitch():
     }
     response = requests.post(url, headers=headers, json=json_body)
     if not status_successful(response.status_code):
-        raise SubscriptionError("Twitch", response.content)
+        with configure_scope() as scope:
+            scope.set_extra("source", "Twitch")
+            scope.set_extra("request.body", json_body)
+            scope.set_extra("response.body", response.content)
+            raise SubscriptionError()
 
 
 if __name__ == "__main__":
