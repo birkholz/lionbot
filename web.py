@@ -60,11 +60,13 @@ def send_youtube_message(title, link):
                 raise DiscordError(response.content, json_body)
 
 
-@app.route('/youtube/webhook', methods=['POST'])
+@app.route('/youtube/webhook', methods=['GET', 'POST'])
 def youtube_webhook():
-    challenge = request.args.get('hub.challenge')
-    if challenge:
-        return challenge, 200
+    if request.method == 'GET':
+        challenge = request.args.get('hub.challenge')
+        if challenge:
+            return challenge, 200
+        return '', 405
 
     # TODO: Ensure request came from YouTube
     video = feedparser.parse(request.data).entries[0]
@@ -106,11 +108,13 @@ class ValidationException(Exception):
     pass
 
 
-@app.route('/twitch/webhook', methods=['POST'])
+@app.route('/twitch/webhook', methods=['GET', 'POST'])
 def twitch_webhook():
-    challenge = request.args.get('hub.challenge')
-    if challenge:
-        return challenge, 200
+    if request.method == 'GET':
+        challenge = request.args.get('hub.challenge')
+        if challenge:
+            return challenge, 200
+        return '', 405
 
     hash = hashlib.sha256(os.environb.get(b"TWITCH_WEBHOOK_SECRET") + request.get_data())
     if request.headers['X-Hub-Signature'] != hash.hexdigest():
