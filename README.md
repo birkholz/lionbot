@@ -2,6 +2,8 @@
 
 _A discord bot for Northernlion's subscriber server that helps keep his subscribers in the loop._
 
+[Join the test server to see a demo of the bot](https://discord.gg/CX7qW4)
+
 ### Goals
 
 * [x] Per-series/twitch role management for notifications (via reactions)
