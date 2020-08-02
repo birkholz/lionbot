@@ -9,6 +9,10 @@ _A discord bot for Northernlion's subscriber server that helps keep his subscrib
 * [x] Twitch live notifications
 * [ ] A way for server moderators/admins to manage the bot (currently evaluating solutions)
 
+### Potential future additions
+
+* [ ] Twitch sub duration role management (assigns roles similar to Twitch's sub flair so user's have different username colors based on sub duration. This clashes with username coloring of admin/moderator.)
+
 #### Role Management
 
 * In order for the bot to assign roles, its role must be higher in the role list than all the roles it will need to change (so put it beneath admin/moderator, but above all notifier roles)
