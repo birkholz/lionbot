@@ -8,7 +8,10 @@ class DiscordError(Exception):
 
 
 class ValidationException(Exception):
-    pass
+    def __init__(self, source, sha, body):
+        self.source = source
+        self.incoming_sha = sha
+        self.body = body
 
 
 class SubscriptionError(Exception):
