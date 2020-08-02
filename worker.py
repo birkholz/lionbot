@@ -24,11 +24,43 @@ class LionBot(discord.Client):
     async def on_guild_join(self, disc_guild):
         self.init_guild(disc_guild)
 
+    def init_twitch_stream(self, guild, disc_guild):
+        twitch_channel = "twitch"
+        twitch_role = "twitch"
+        twitch_description = "NL goes live on Twitch"
+        twitch_emoji = "🎥"
+        channel = discord.utils.get(disc_guild.text_channels, name=twitch_channel)
+        role = discord.utils.get(disc_guild.roles, name=twitch_role)
+
+        twitch_stream = session.query(Stream).filter_by(guild_id=channel.guild.id, channel_id=channel.id).first()
+        if twitch_stream:
+            twitch_stream.description = twitch_description
+            twitch_stream.emoji = twitch_emoji
+            twitch_stream.channel_id = channel.id
+            twitch_stream.role_id = role.id
+        else:
+            twitch_stream = Stream(
+                guild_id=channel.guild.id,
+                description=twitch_description,
+                emoji=twitch_emoji,
+                channel_id=channel.id,
+                role_id=role.id,
+            )
+        session.add(twitch_stream)
+        session.commit()
+        guild.twitch_stream_id = twitch_stream.id
+        session.add(guild)
+        session.commit()
+
     def init_guild(self, disc_guild):
         guild = session.query(Guild).filter_by(id=disc_guild.id).first()
         if guild is None:
             guild = Guild(id=disc_guild.id, name=disc_guild.name)
             session.add(guild)
+        session.commit()
+
+        # Handle twitch stream separately so we can get an ID
+        self.init_twitch_stream(guild, disc_guild)
 
         for seed in seed_data():
             channel = discord.utils.get(disc_guild.text_channels, name=seed['channel'])
@@ -57,7 +89,6 @@ class LionBot(discord.Client):
                     role_id=role.id,
                 )
             session.add(stream)
-
         session.commit()
 
         return guild

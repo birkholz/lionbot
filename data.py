@@ -12,7 +12,9 @@ class Guild(Base):
     name = Column(String)
     role_channel_id = Column(BigInteger, nullable=True)
     role_message_id = Column(BigInteger, nullable=True)
-    streams = relationship("Stream")
+    twitch_stream_id = Column(Integer, ForeignKey('streams.id'))
+    twitch_stream = relationship("Stream", foreign_keys=twitch_stream_id)
+    streams = relationship("Stream", backref="guild", foreign_keys="Stream.guild_id")
 
     def __repr__(self):
         return f"<Guild {self.id} name='{self.name}'>"
@@ -22,7 +24,6 @@ class Stream(Base):
     __tablename__ = 'streams'
     id = Column(Integer, primary_key=True)
     guild_id = Column(BigInteger, ForeignKey('guilds.id'))
-    guild = relationship("Guild")
     description = Column(String) # The description given in the role message
     emoji = Column(String) # The unicode emoji of the reaction on the role message
     title_contains = Column(String) # The text to look for in a YouTube title to associate it with this stream
@@ -35,12 +36,6 @@ class Stream(Base):
 
 def seed_data():
     return [
-        {
-            'desc': 'NL goes live on Twitch',
-            'role': 'twitch',
-            'emoji': '🎥',
-            'channel': 'twitch',
-        },
         {
             'desc': 'new episode of Northernlion Tries',
             'role': 'nltries',
