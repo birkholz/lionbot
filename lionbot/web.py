@@ -12,7 +12,7 @@ from lionbot.data import Stream, Guild
 from lionbot.errors import DiscordError, ValidationException
 from lionbot.utils import status_successful, init_sentry
 
-init_sentry([FlaskIntegration])
+init_sentry([FlaskIntegration()])
 
 app = Flask(__name__)
 
