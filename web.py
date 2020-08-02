@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import os
 
@@ -86,9 +87,15 @@ def send_twitch_message(title, thumbnail_url):
             return
 
 
+class ValidationException(Exception):
+    pass
+
+
 @app.route('/twitch/webhook', methods=['POST'])
 def twitch_webhook():
-    # TODO: request.headers['X-Hub-Signature'] == sha256(secret, notification_bytes)
+    hash = hashlib.sha256(os.environb.get(b"TWITCH_WEBHOOK_SECRET") + request.get_data())
+    if request.headers['X-Hub-Signature'] != hash.hexdigest():
+        raise ValidationException("Twitch SHA signature did not match")
     json_body = request.get_json()
     event = json_body['data'][0]
     if event['type'] == 'live':
