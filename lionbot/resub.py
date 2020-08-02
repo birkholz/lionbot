@@ -1,15 +1,11 @@
 import os
 
 import requests
-import sentry_sdk
 
-from lionbot.errors import SubscriptionError
-from lionbot.utils import status_successful
+from lionbot.errors import SubscriptionError, AuthenticationError
+from lionbot.utils import status_successful, init_sentry
 
-if os.environ.get("SENTRY_DSN"):
-    sentry_sdk.init(
-        dsn=os.environ.get("SENTRY_DSN"),
-    )
+init_sentry()
 
 
 def subscribe_to_youtube():
@@ -22,15 +18,6 @@ def subscribe_to_youtube():
     response = requests.post(url, data=data)
     if not status_successful(response.status_code):
         raise SubscriptionError("YouTube", response.content)
-
-
-class AuthenticationError(Exception):
-    """
-    Exception raised when failing to authenticate.
-    """
-    def __init__(self, source, response):
-        self.source = source
-        self.response = response
 
 
 def get_twitch_access_token():

@@ -19,3 +19,12 @@ class SubscriptionError(Exception):
         self.source = source
         self.response = response
 
+
+class AuthenticationError(Exception):
+    """
+    Exception raised when failing to authenticate.
+    """
+
+    def __init__(self, source, response):
+        self.source = source
+        self.response = response

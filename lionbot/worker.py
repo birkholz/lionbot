@@ -2,21 +2,18 @@ import logging
 import os
 
 import discord
-import sentry_sdk
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from lionbot.data import Guild, seed_data, Stream
+from lionbot.utils import init_sentry
 
 logging.basicConfig(level=logging.INFO)
 engine = create_engine(os.environ.get('DATABASE_URL'))
 Session = sessionmaker(bind=engine)
 session = Session()
 
-if os.environ.get("SENTRY_DSN"):
-    sentry_sdk.init(
-        dsn=os.environ.get("SENTRY_DSN"),
-    )
+init_sentry()
 
 
 # TODO: Make this configurable without changing code

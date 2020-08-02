@@ -3,7 +3,6 @@ import os
 
 import feedparser
 import requests
-import sentry_sdk
 from flask import Flask, request
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sqlalchemy import create_engine
@@ -11,13 +10,9 @@ from sqlalchemy.orm import sessionmaker
 
 from lionbot.data import Stream, Guild
 from lionbot.errors import DiscordError, ValidationException
-from lionbot.utils import status_successful
+from lionbot.utils import status_successful, init_sentry
 
-if os.environ.get("SENTRY_DSN"):
-    sentry_sdk.init(
-        dsn=os.environ.get("SENTRY_DSN"),
-        integrations=[FlaskIntegration()]
-    )
+init_sentry([FlaskIntegration])
 
 app = Flask(__name__)
 
