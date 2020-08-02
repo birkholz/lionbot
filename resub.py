@@ -1,4 +1,3 @@
-import logging
 import os
 
 import requests
@@ -8,6 +7,19 @@ sentry_sdk.init(
     dsn=os.environ.get("SENTRY_DSN"),
 )
 
+class SubscriptionError(Exception):
+    """
+    Exception raised when a request to subscribe failed.
+    """
+    def __init__(self, source, response):
+        self.source = source
+        self.response = response
+
+
+def status_successful(status_code):
+    return status_code >= 200 and status_code < 300
+
+
 def subscribe_to_youtube():
     url = 'https://pubsubhubbub.appspot.com/subscribe'
     data = {
@@ -16,8 +28,17 @@ def subscribe_to_youtube():
         "callback_url": "https://lion-disc-bot.herokuapp.com/youtube/webhook",
     }
     response = requests.post(url, data=data)
-    if response.status_code > 299:
-        logging.error(f"Error when subscribing to YouTube: {response.content}")
+    if status_successful(response.status_code):
+        raise SubscriptionError("YouTube", response.content)
+
+
+class AuthenticationError(Exception):
+    """
+    Exception raised when failing to authenticate.
+    """
+    def __init__(self, source, response):
+        self.source = source
+        self.response = response
 
 
 def get_twitch_access_token():
@@ -28,9 +49,8 @@ def get_twitch_access_token():
         "grant_type": "client_credentials",
     }
     response = requests.post(url, params=body)
-    if response.status_code > 299:
-        logging.error(f"Failed to get Twitch access code: {response.content}")
-        return None
+    if status_successful(response.status_code):
+        raise AuthenticationError("Twitch", response.content)
     access_token = response.json()['access_token']
     return access_token
 
@@ -52,8 +72,9 @@ def subscribe_to_twitch():
         "hub.secret": os.environ.get("TWITCH_WEBHOOK_SECRET"),
     }
     response = requests.post(url, headers=headers, json=json_body)
-    if response.status_code > 299:
-        logging.error(f"Error when subscribing to Twitch: {response.json()}")
+    if status_successful(response.status_code):
+        raise SubscriptionError("Twitch", response.content)
+
 
 if __name__ == "__main__":
     subscribe_to_twitch()

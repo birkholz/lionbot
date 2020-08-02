@@ -25,6 +25,19 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
+class DiscordError(Exception):
+    """
+    Exception raised when Discord rejects a message.
+    """
+    def __init__(self, response, body):
+        self.body = body
+        self.response = response
+
+
+def status_successful(status_code):
+    return status_code >= 200 and status_code < 300
+
+
 def send_youtube_message(title, link):
     for stream in session.query(Stream).all():
         if stream.title_contains is not None and stream.title_contains in title:
@@ -44,8 +57,8 @@ def send_youtube_message(title, link):
                 }
             }
             response = requests.post(message_url, headers=headers, json=json_body)
-            if response.status_code > 299:
-                logging.error(f"Error when posting YouTube video: {response.content}")
+            if status_successful(response.status_code):
+                raise DiscordError(response.content, json_body)
 
 
 @app.route('/youtube/webhook', methods=['POST'])
@@ -82,9 +95,8 @@ def send_twitch_message(title, thumbnail_url):
             }
         }
         response = requests.post(message_url, headers=headers, json=json_body)
-        if response.status_code > 299:
-            logging.error(f"Error when posting Twitch live embed: {response.content}")
-            return
+        if status_successful(response.status_code):
+            raise DiscordError(response.content, json_body)
 
 
 class ValidationException(Exception):
