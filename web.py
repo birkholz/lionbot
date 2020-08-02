@@ -94,7 +94,3 @@ def twitch_webhook():
     if event['type'] == 'live':
         send_twitch_message(event['title'], event['thumbnail_url'])
     return '', 204
-
-@app.route('/debug-sentry')
-def trigger_error():
-    division_by_zero = 1 / 0
