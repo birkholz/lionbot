@@ -3,22 +3,13 @@ import os
 import requests
 import sentry_sdk
 
+from lionbot.errors import SubscriptionError
+from lionbot.utils import status_successful
+
 if os.environ.get("SENTRY_DSN"):
     sentry_sdk.init(
         dsn=os.environ.get("SENTRY_DSN"),
     )
-
-class SubscriptionError(Exception):
-    """
-    Exception raised when a request to subscribe failed.
-    """
-    def __init__(self, source, response):
-        self.source = source
-        self.response = response
-
-
-def status_successful(status_code):
-    return status_code >= 200 and status_code < 300
 
 
 def subscribe_to_youtube():

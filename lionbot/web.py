@@ -9,7 +9,9 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from data import Stream, Guild
+from lionbot.data import Stream, Guild
+from lionbot.errors import DiscordError, ValidationException
+from lionbot.utils import status_successful
 
 if os.environ.get("SENTRY_DSN"):
     sentry_sdk.init(
@@ -22,19 +24,6 @@ app = Flask(__name__)
 engine = create_engine(os.environ.get('DATABASE_URL'))
 Session = sessionmaker(bind=engine)
 session = Session()
-
-
-class DiscordError(Exception):
-    """
-    Exception raised when Discord rejects a message.
-    """
-    def __init__(self, response, body):
-        self.body = body
-        self.response = response
-
-
-def status_successful(status_code):
-    return status_code >= 200 and status_code < 300
 
 
 def send_youtube_message(title, link):
@@ -102,10 +91,6 @@ def send_twitch_message(title, thumbnail_url):
         response = requests.post(message_url, headers=headers, json=json_body)
         if not status_successful(response.status_code):
             raise DiscordError(response.content, json_body)
-
-
-class ValidationException(Exception):
-    pass
 
 
 @app.route('/twitch/webhook', methods=['GET', 'POST'])

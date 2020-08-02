@@ -6,7 +6,7 @@ import sentry_sdk
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from data import Guild, seed_data, Stream
+from lionbot.data import Guild, seed_data, Stream
 
 logging.basicConfig(level=logging.INFO)
 engine = create_engine(os.environ.get('DATABASE_URL'))
