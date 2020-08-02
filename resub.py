@@ -3,9 +3,10 @@ import os
 import requests
 import sentry_sdk
 
-sentry_sdk.init(
-    dsn=os.environ.get("SENTRY_DSN"),
-)
+if os.environ.get("SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=os.environ.get("SENTRY_DSN"),
+    )
 
 class SubscriptionError(Exception):
     """
@@ -23,12 +24,12 @@ def status_successful(status_code):
 def subscribe_to_youtube():
     url = 'https://pubsubhubbub.appspot.com/subscribe'
     data = {
-        "mode": "subscribe",
-        "topic_id": "https://www.youtube.com/xml/feeds/videos.xml?channel_id=Northernlion",
-        "callback_url": "https://lion-disc-bot.herokuapp.com/youtube/webhook",
+        "hub.mode": "subscribe",
+        "hub.topic": "https://www.youtube.com/xml/feeds/videos.xml?channel_id=Northernlion",
+        "hub.callback": "https://lion-disc-bot.herokuapp.com/youtube/webhook",
     }
     response = requests.post(url, data=data)
-    if status_successful(response.status_code):
+    if not status_successful(response.status_code):
         raise SubscriptionError("YouTube", response.content)
 
 
@@ -49,7 +50,7 @@ def get_twitch_access_token():
         "grant_type": "client_credentials",
     }
     response = requests.post(url, params=body)
-    if status_successful(response.status_code):
+    if not status_successful(response.status_code):
         raise AuthenticationError("Twitch", response.content)
     access_token = response.json()['access_token']
     return access_token
@@ -62,7 +63,8 @@ def subscribe_to_twitch():
 
     url = 'https://api.twitch.tv/helix/webhooks/hub'
     headers = {
-        'Authorization': f'Bearer {token}'
+        'Client-Id': os.environ.get('TWITCH_CLIENT_ID'),
+        'Authorization': f'Bearer {token}',
     }
     json_body = {
         "hub.callback": "https://lion-disc-bot.herokuapp.com/twitch/webhook",
@@ -72,7 +74,7 @@ def subscribe_to_twitch():
         "hub.secret": os.environ.get("TWITCH_WEBHOOK_SECRET"),
     }
     response = requests.post(url, headers=headers, json=json_body)
-    if status_successful(response.status_code):
+    if not status_successful(response.status_code):
         raise SubscriptionError("Twitch", response.content)
 
 

@@ -1,5 +1,4 @@
 import hashlib
-import logging
 import os
 
 import feedparser
@@ -12,11 +11,11 @@ from sqlalchemy.orm import sessionmaker
 
 from data import Stream, Guild
 
-
-sentry_sdk.init(
-    dsn=os.environ.get("SENTRY_DSN"),
-    integrations=[FlaskIntegration()]
-)
+if os.environ.get("SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=os.environ.get("SENTRY_DSN"),
+        integrations=[FlaskIntegration()]
+    )
 
 app = Flask(__name__)
 
@@ -57,12 +56,16 @@ def send_youtube_message(title, link):
                 }
             }
             response = requests.post(message_url, headers=headers, json=json_body)
-            if status_successful(response.status_code):
+            if not status_successful(response.status_code):
                 raise DiscordError(response.content, json_body)
 
 
 @app.route('/youtube/webhook', methods=['POST'])
 def youtube_webhook():
+    challenge = request.args.get('hub.challenge')
+    if challenge:
+        return challenge, 200
+
     # TODO: Ensure request came from YouTube
     video = feedparser.parse(request.data).entries[0]
     send_youtube_message(video.title, video.link)
@@ -95,7 +98,7 @@ def send_twitch_message(title, thumbnail_url):
             }
         }
         response = requests.post(message_url, headers=headers, json=json_body)
-        if status_successful(response.status_code):
+        if not status_successful(response.status_code):
             raise DiscordError(response.content, json_body)
 
 
@@ -105,6 +108,10 @@ class ValidationException(Exception):
 
 @app.route('/twitch/webhook', methods=['POST'])
 def twitch_webhook():
+    challenge = request.args.get('hub.challenge')
+    if challenge:
+        return challenge, 200
+
     hash = hashlib.sha256(os.environb.get(b"TWITCH_WEBHOOK_SECRET") + request.get_data())
     if request.headers['X-Hub-Signature'] != hash.hexdigest():
         raise ValidationException("Twitch SHA signature did not match")
