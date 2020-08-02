@@ -24,3 +24,19 @@ If a user does not want to be mentioned anymore, they can re-react to the messag
 ### Commands
 
 `!lion roles` posts the roles management message. Only moderators can use this command. The bot will delete the command message and will delete previous messages if commanded again.
+
+### Development
+
+1. Install Python 3.8.5
+2. Clone the repo
+3. `pipenv install`
+4. `python worker.py` or any other script to run it locally.
+
+Environment variables you will need:
+```
+DISCORD_TOKEN=
+DATABASE_URL=
+TWITCH_CLIENT_ID=
+TWITCH_CLIENT_SECRET=
+TWITCH_WEBHOOK_SECRET=
+```
