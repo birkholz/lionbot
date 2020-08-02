@@ -12,6 +12,7 @@ feedparser = "*"
 requests = "*"
 sqlalchemy = "*"
 psycopg2 = "*"
+sentry-sdk = {extras = ["flask"], version = "==0.16.2"}
 
 [requires]
 python_version = "3.8"

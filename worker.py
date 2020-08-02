@@ -2,6 +2,7 @@ import logging
 import os
 
 import discord
+import sentry_sdk
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -11,6 +12,10 @@ logging.basicConfig(level=logging.INFO)
 engine = create_engine(os.environ.get('DATABASE_URL'))
 Session = sessionmaker(bind=engine)
 session = Session()
+
+sentry_sdk.init(
+    dsn=os.environ.get("SENTRY_DSN"),
+)
 
 
 # TODO: Make this configurable without changing code

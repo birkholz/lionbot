@@ -1,12 +1,21 @@
+import logging
 import os
 
 import feedparser
 import requests
+import sentry_sdk
 from flask import Flask, request
+from sentry_sdk.integrations.flask import FlaskIntegration
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from data import Stream, Guild
+
+
+sentry_sdk.init(
+    dsn=os.environ.get("SENTRY_DSN"),
+    integrations=[FlaskIntegration()]
+)
 
 app = Flask(__name__)
 
@@ -33,7 +42,9 @@ def send_youtube_message(title, link):
                     "parse": ["roles"]
                 }
             }
-            requests.post(message_url, headers=headers, json=json_body)
+            response = requests.post(message_url, headers=headers, json=json_body)
+            if response.status_code > 299:
+                logging.error(f"Error when posting YouTube video: {response.content}")
 
 
 @app.route('/youtube/webhook', methods=['POST'])
@@ -69,7 +80,10 @@ def send_twitch_message(title, thumbnail_url):
                 "parse": ["roles"]
             }
         }
-        requests.post(message_url, headers=headers, json=json_body)
+        response = requests.post(message_url, headers=headers, json=json_body)
+        if response.status_code > 299:
+            logging.error(f"Error when posting Twitch live embed: {response.content}")
+            return
 
 
 @app.route('/twitch/webhook', methods=['POST'])
@@ -80,3 +94,7 @@ def twitch_webhook():
     if event['type'] == 'live':
         send_twitch_message(event['title'], event['thumbnail_url'])
     return '', 204
+
+@app.route('/debug-sentry')
+def trigger_error():
+    division_by_zero = 1 / 0
