@@ -8,7 +8,7 @@ def subscribe_to_youtube():
     data = {
         "mode": "subscribe",
         "topic_id": "https://www.youtube.com/xml/feeds/videos.xml?channel_id=Northernlion",
-        "callback_url": "localhost:5000/youtube/webhook",  # TODO: fill this when the server is up and running
+        "callback_url": "https://lion-disc-bot.herokuapp.com/youtube/webhook",
     }
     requests.post(url, data=data)
 
@@ -31,7 +31,7 @@ def subscribe_to_twitch():
         'Authorization': f'Bearer {get_twitch_access_token()}'
     }
     json_body = {
-        "hub.callback": "localhost:5000/twitch/webhook",  # TODO: fill this when server is up and running
+        "hub.callback": "https://lion-disc-bot.herokuapp.com/twitch/webhook",
         "hub.mode": "subscribe",
         "hub.topic": "https://api.twitch.tv/helix/streams?user_id=14371185",
         "hub.lease_seconds": 864000,
