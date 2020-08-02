@@ -154,8 +154,11 @@ class LionBot(discord.Client):
 
     async def on_message(self, message):
         if message.content == '!lion roles':
-            await message.delete()
-            await self.send_role_message(message.channel)
+            for role in message.author.roles:
+                if role.name == 'Moderator':
+                    await message.delete()
+                    await self.send_role_message(message.channel)
+                    break
 
 
 discord_client = LionBot()

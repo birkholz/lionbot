@@ -7,7 +7,7 @@ _A discord bot for Northernlion's subscriber server that helps keep his subscrib
 * [x] Per-series/twitch role management for notifications (via reactions)
 * [x] YouTube video upload notifications to per-series channels (e.g. NL tries goes to #nl-tries)
 * [x] Twitch live notifications
-* [ ] A way for server moderators/admins to manage the bot
+* [ ] A way for server moderators/admins to manage the bot (currently evaluating solutions)
 
 #### Role Management
 
@@ -19,4 +19,4 @@ If a user does not want to be mentioned anymore, they can re-react to the messag
 
 ### Commands
 
-`!lion roles` posts the roles management message. The bot will delete the command message.
+`!lion roles` posts the roles management message. Only moderators can use this command. The bot will delete the command message and will delete previous messages if commanded again.
