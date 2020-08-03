@@ -13,7 +13,7 @@ def subscribe_to_youtube():
     url = 'https://pubsubhubbub.appspot.com/subscribe'
     data = {
         "hub.mode": "subscribe",
-        "hub.topic": "https://www.youtube.com/xml/feeds/videos.xml?channel_id=Northernlion",
+        "hub.topic": "https://www.youtube.com/xml/feeds/videos.xml?channel_id=UC3tNpTOHsTnkmbwztCs30sA",
         "hub.callback": "https://lion-disc-bot.herokuapp.com/youtube/webhook",
     }
     response = requests.post(url, data=data)
