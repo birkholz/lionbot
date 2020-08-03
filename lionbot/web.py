@@ -93,8 +93,8 @@ def send_twitch_message(title, thumbnail_url):
                 "title": title,
                 "url": link,
                 "image": {
-                    "url": thumbnail_url,
-                }
+                    "url": thumbnail_url.format(width=960, height=540),
+                },
             },
             "allowed_mentions": {
                 "parse": ["roles"]
