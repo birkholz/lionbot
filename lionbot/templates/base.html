@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% block head %}
+    <title>{% block title %}LionBot{% endblock %}</title>
+    {% endblock %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/base.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">LionBot</a>
+
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('guilds') }}">Guilds</a>
+                </li>
+                <li class="nav-item">
+                    <span class="nav-link"><svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+                </li>
+                {% if guild %}
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">
+                        <!--                    <img src="https://cdn.discordapp.com/icons/{{ guild.id }}/{{ guild.icon }}.png?size=32" class="d-inline-block align-top" alt="guild icon" loading="lazy">-->
+                        {{ guild.name }}
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+    <main role="main" class="container">
+        {% block body %}{% endblock %}
+    </main>
+</body>
+</html>

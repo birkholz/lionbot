@@ -14,7 +14,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 
 from lionbot.data import Stream, Guild
 from lionbot.errors import DiscordError, ValidationException
-from lionbot.utils import status_successful, init_sentry
+from lionbot.utils import status_successful, init_sentry, int_ids
 
 init_sentry([FlaskIntegration()])
 
@@ -168,7 +168,7 @@ def discord_callback():
             raise DiscordError("Mismatched state")
 
     exchange_discord_code(request.args.get('code'))
-    return redirect(url_for('management'))
+    return redirect(url_for('guilds'))
 
 
 def call_discord_api(endpoint, headers=None, data=None, auth=True, bot=False):
@@ -193,7 +193,7 @@ def get_guilds():
 
 
 @app.route('/manage', methods=['GET'])
-def management():
+def guilds():
     if 'discord_access_token' not in session:
         return redirect(url_for('login'))
 
@@ -227,10 +227,48 @@ def management():
 
         guilds_managed.append(managed_guild)
 
-    return render_template("management.html", current_user=current_user, guilds=guilds_managed)
+    return render_template("guilds.html", current_user=current_user, guilds=guilds_managed)
 
 
 @app.route('/manage/<guild_id>', methods=['GET'])
 def manage_guild(guild_id):
-    guild = call_discord_api(f'/guilds/{guild_id}', bot=True)
-    return render_template('manage_guild.html', guild=guild)
+    try:
+        guild = call_discord_api(f'/guilds/{guild_id}', bot=True)
+        roles = call_discord_api(f'/guilds/{guild_id}/roles', bot=True)
+        channels = call_discord_api(f'/guilds/{guild_id}/channels', bot=True)
+    except HTTPError:
+        with configure_scope() as scope:
+            scope.set_extra("source", "Discord")
+            raise DiscordError("Bot request failed")
+        return
+
+    GUILD_TEXT = 0
+    twitch_stream_id = db.session.query(Guild.twitch_stream_id).filter_by(id=guild_id)[0]
+    twitch_channel_id = db.session.query(Stream.channel_id).filter_by(id=twitch_stream_id)[0].channel_id
+    channels = list(filter(lambda c: c['type'] == GUILD_TEXT, channels))
+    roles = list(filter(lambda r: r['name'] != '@everyone', roles))
+
+    streams = db.session.query(Stream).filter_by(guild_id=guild_id)
+    int_ids(guild)
+    int_ids(roles)
+    int_ids(channels)
+    return render_template(
+        'manage_guild.html',
+        guild=guild,
+        streams=streams,
+        roles=roles,
+        channels=channels,
+        twitch_channel_id=twitch_channel_id
+    )
+
+
+@app.route('/streams/<stream_id>', methods=['POST'])
+def update_stream(stream_id):
+    #TODO
+    pass
+
+
+@app.route('/streams', methods=['POST'])
+def new_stream():
+    #TODO
+    pass

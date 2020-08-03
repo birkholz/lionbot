@@ -14,3 +14,10 @@ def init_sentry(integrations=None):
             dsn=os.environ.get("SENTRY_DSN"),
             integrations=integrations
         )
+
+def int_ids(obj):
+    if isinstance(obj, dict):
+        obj['id'] = int(obj['id'])
+    if isinstance(obj, list):
+        for o in obj:
+            int_ids(o)
