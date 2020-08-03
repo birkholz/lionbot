@@ -8,6 +8,7 @@ import requests
 from discord import Permissions
 from flask import Flask, redirect, request, session, url_for, render_template
 from flask_sqlalchemy import SQLAlchemy
+from requests import HTTPError
 from sentry_sdk import configure_scope
 from sentry_sdk.integrations.flask import FlaskIntegration
 
@@ -20,6 +21,7 @@ init_sentry([FlaskIntegration()])
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 discord_api_root = 'https://discord.com/api/v6'
@@ -150,7 +152,7 @@ def exchange_discord_code(code=None):
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded'
     }
-    response = call_discord_api('/oauth2/token', headers=headers, data=data)
+    response = call_discord_api('/oauth2/token', headers=headers, data=data, auth=False)
     session['discord_access_token'] = response['access_token']
     session['discord_refresh_token'] = response['refresh_token']
 
@@ -169,11 +171,15 @@ def discord_callback():
     return redirect(url_for('management'))
 
 
-def call_discord_api(endpoint, headers=None, data=None):
+def call_discord_api(endpoint, headers=None, data=None, auth=True, bot=False):
     url = f'{discord_api_root}{endpoint}'
     if not headers:
         headers = {}
-    headers['Authorization'] = f"Bearer {session['discord_access_token']}"
+    if auth:
+        if bot:
+            headers['Authorization'] = f"Bot {os.environ.get('DISCORD_TOKEN')}"
+        else:
+            headers['Authorization'] = f"Bearer {session['discord_access_token']}"
 
     response = requests.get(url, headers=headers, data=data)
     with configure_scope() as scope:
@@ -191,8 +197,14 @@ def management():
     if 'discord_access_token' not in session:
         return redirect(url_for('login'))
 
-    current_user = call_discord_api('/users/@me')
-    guilds = call_discord_api('/users/@me/guilds')
+    try:
+        current_user = call_discord_api('/users/@me')
+        guilds = call_discord_api('/users/@me/guilds')
+    except HTTPError:
+        return redirect(url_for('login'))
+
+    bot_guilds = call_discord_api('/users/@me/guilds', bot=True)
+
     guilds_managed = []
     for managed_guild in guilds:
         # Only show guilds they can add the bot to
@@ -201,12 +213,17 @@ def management():
             continue
 
         # Mark guilds that the bot is already active in
-        # TODO: We probably want to check guilds that the bot is actually in, not just guilds in our DB
         managed_guild['added'] = False
-        for guild in db.session.query(Guild).all():
-            if guild.id == managed_guild['id']:
+        for bot_guild in bot_guilds:
+            if bot_guild['id'] == managed_guild['id']:
                 managed_guild['added'] = True
                 break
+
+        if not managed_guild['added']:
+            client_id = os.environ.get('DISCORD_CLIENT_ID')
+            permissions = 268659776
+            redirect_url = urllib.parse.quote(os.environ.get('DOMAIN') + url_for('manage_guild', guild_id=managed_guild['id']))
+            managed_guild['add_link'] = f"https://discord.com/api/oauth2/authorize?client_id={client_id}&permissions={permissions}&scope=bot&redirect_url={redirect_url}&guild_id={managed_guild['id']}"
 
         guilds_managed.append(managed_guild)
 
@@ -215,4 +232,5 @@ def management():
 
 @app.route('/manage/<guild_id>', methods=['GET'])
 def manage_guild(guild_id):
-    pass
+    guild = call_discord_api(f'/guilds/{guild_id}', bot=True)
+    return render_template('manage_guild.html', guild=guild)
