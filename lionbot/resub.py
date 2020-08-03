@@ -14,7 +14,8 @@ def subscribe_to_youtube():
     data = {
         "hub.mode": "subscribe",
         "hub.topic": "https://www.youtube.com/xml/feeds/videos.xml?channel_id=UC3tNpTOHsTnkmbwztCs30sA",
-        "hub.callback": "https://lion-disc-bot.herokuapp.com/youtube/webhook",
+        "hub.callback": f"{os.environ.get('DOMAIN')}/youtube/webhook",
+        "hub.secret": os.environ.get("WEBHOOK_SECRET"),
     }
     response = requests.post(url, data=data)
     if not status_successful(response.status_code):
@@ -54,11 +55,11 @@ def subscribe_to_twitch():
         'Authorization': f'Bearer {token}',
     }
     json_body = {
-        "hub.callback": "https://lion-disc-bot.herokuapp.com/twitch/webhook",
+        "hub.callback": f"{os.environ.get('DOMAIN')}/twitch/webhook",
         "hub.mode": "subscribe",
         "hub.topic": "https://api.twitch.tv/helix/streams?user_id=14371185",
         "hub.lease_seconds": 864000,
-        "hub.secret": os.environ.get("TWITCH_WEBHOOK_SECRET"),
+        "hub.secret": os.environ.get("WEBHOOK_SECRET"),
     }
     response = requests.post(url, headers=headers, json=json_body)
     if not status_successful(response.status_code):

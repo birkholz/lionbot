@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 import os
 import random
 import urllib.parse
@@ -62,7 +63,13 @@ def youtube_webhook():
             return challenge, 200
         return '', 405
 
-    # TODO: Ensure request came from YouTube
+    if not check_signature(request):
+        with configure_scope() as scope:
+            scope.set_extra("source", "YouTube")
+            scope.set_extra("sha", request.headers['X-Hub-Signature'])
+            scope.set_extra("body", request.get_data())
+            raise ValidationException()
+
     video = feedparser.parse(request.data).entries[0]
     send_youtube_message(video.title, video.link)
     return '', 204
@@ -102,6 +109,16 @@ def send_twitch_message(title, thumbnail_url):
                 raise DiscordError()
 
 
+def check_signature(request):
+    signed = request.headers.get('X-Hub-Signature')
+    if signed:
+        alg, signature = signed.split('=')
+        hash = hmac.new(os.environb.get(b"WEBHOOK_SECRET"), msg=request.get_data(), digestmod=alg).hexdigest()
+        return hash == signature
+
+    return True
+
+
 @app.route('/twitch/webhook', methods=['GET', 'POST'])
 def twitch_webhook():
     if request.method == 'GET':
@@ -110,8 +127,7 @@ def twitch_webhook():
             return challenge, 200
         return '', 405
 
-    hash = hashlib.sha256(os.environb.get(b"TWITCH_WEBHOOK_SECRET") + request.get_data())
-    if request.headers['X-Hub-Signature'] != f'sha256={hash.hexdigest()}':
+    if not check_signature(request):
         with configure_scope() as scope:
             scope.set_extra("source", "Twitch")
             scope.set_extra("sha", request.headers['X-Hub-Signature'])
