@@ -1,0 +1,13 @@
+<!doctype html>
+<html>
+<head></head>
+<body>
+    <h2>LionBot Management</h2>
+    <h4>Guilds:</h4>
+    <ul>
+        {% for guild in guilds %}
+        <li><a href="{{ url_for('manage_guild', guild_id='guild[id]') }}">{{ guild.name }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
