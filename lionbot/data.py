@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, BigInteger
+from sqlalchemy import Column, Integer, String, ForeignKey, BigInteger, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -33,6 +33,30 @@ class Stream(Base):
 
     def __repr__(self):
         return f"<Stream {self.id} description='{self.description}'>"
+
+
+class Video(Base):
+    """
+    Saves the videos received by YouTube's webhook to prevent reposts
+    """
+    __tablename__ = 'videos'
+    id = Column(String, primary_key=True) # YouTube's video ID
+    guild_id = Column(BigInteger, ForeignKey('guilds.id'))
+
+    Index('videos_id_guild_id', 'id', 'guild_id', unique=True)
+
+
+class TwitchStream(Base):
+    """
+    Saves a Twitch stream so we don't repost a stream when it updates.
+    Twitch's webhooks do not differentiate between new streams and game name updates.
+    """
+    __tablename__ = 'twitch_streams'
+    id = Column(BigInteger, primary_key=True)
+    guild_id = Column(BigInteger, ForeignKey('guilds.id'))
+
+    Index('twitch_streams_id_guild_id', 'id', 'guild_id', unique=True)
+
 
 def seed_data():
     return [

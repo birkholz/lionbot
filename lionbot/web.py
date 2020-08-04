@@ -1,4 +1,3 @@
-import hashlib
 import hmac
 import os
 import random
@@ -13,7 +12,7 @@ from requests import HTTPError
 from sentry_sdk import configure_scope
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-from lionbot.data import Stream, Guild
+from lionbot.data import Stream, Guild, Video, TwitchStream
 from lionbot.errors import DiscordError, ValidationException
 from lionbot.utils import status_successful, init_sentry, int_ids
 
@@ -28,9 +27,14 @@ db = SQLAlchemy(app)
 discord_api_root = 'https://discord.com/api/v6'
 
 
-def send_youtube_message(title, link):
+def send_youtube_message(video):
     for stream in db.session.query(Stream).all():
-        if stream.title_contains is not None and stream.title_contains in title:
+        posted = db.session.query(Video).filter_by(id=video.id, guild_id=stream.guild_id).count()
+        if posted > 0:
+            # Already posted, don't repost
+            return
+
+        if stream.title_contains is not None and stream.title_contains in video.title:
             channel_id = stream.channel_id
             message_url = f"https://discordapp.com/api/channels/{channel_id}/messages"
             headers = {
@@ -38,7 +42,7 @@ def send_youtube_message(title, link):
                 "Content-Type": "application/json",
             }
 
-            content = f"<@&{stream.role_id}>\n{link}"
+            content = f"<@&{stream.role_id}>\n{video.link}"
 
             json_body = {
                 "content": content,
@@ -53,6 +57,10 @@ def send_youtube_message(title, link):
                     scope.set_extra("request.body", json_body)
                     scope.set_extra("response.body", response.content)
                     raise DiscordError()
+
+            obj = Video(id=video.id, guild_id=stream.guild_id)
+            db.session.add(obj)
+            db.session.commit()
 
 
 @app.route('/youtube/webhook', methods=['GET', 'POST'])
@@ -71,12 +79,17 @@ def youtube_webhook():
             raise ValidationException()
 
     video = feedparser.parse(request.data).entries[0]
-    send_youtube_message(video.title, video.link)
+    send_youtube_message(video)
     return '', 204
 
 
-def send_twitch_message(title, thumbnail_url):
+def send_twitch_message(event):
     for guild in db.session.query(Guild).all():
+        posted = db.session.query(TwitchStream).filter_by(id=event['id'], guild_id=guild.id).count()
+        if posted > 0:
+            # Already posted, don't repost
+            return
+
         channel_id = guild.twitch_stream.channel_id
         message_url = f"https://discordapp.com/api/channels/{channel_id}/messages"
         headers = {
@@ -90,10 +103,10 @@ def send_twitch_message(title, thumbnail_url):
         json_body = {
             "content": content,
             "embed": {
-                "title": title,
+                "title": event['title'],
                 "url": link,
                 "image": {
-                    "url": thumbnail_url.format(width=960, height=540),
+                    "url": event['thumbnail_url'].format(width=960, height=540),
                 },
             },
             "allowed_mentions": {
@@ -107,6 +120,10 @@ def send_twitch_message(title, thumbnail_url):
                 scope.set_extra("request.body", json_body)
                 scope.set_extra("response.body", response.content)
                 raise DiscordError()
+
+        obj = TwitchStream(id=event['id'], guild_id=guild.id)
+        db.session.add(obj)
+        db.session.commit()
 
 
 def check_signature(request):
@@ -136,7 +153,7 @@ def twitch_webhook():
     json_body = request.get_json()
     event = json_body['data'][0]
     if event['type'] == 'live':
-        send_twitch_message(event['title'], event['thumbnail_url'])
+        send_twitch_message(event)
     return '', 204
 
 
