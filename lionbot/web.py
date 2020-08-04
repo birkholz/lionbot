@@ -99,14 +99,14 @@ def send_twitch_message(event):
 
         link = 'https://www.twitch.tv/northernlion'
         content = f"<@&{guild.twitch_stream.role_id}>\nNorthernlion just went live on Twitch!"
-
+        thumbnail_url = event['thumbnail_url'].format(width=960, height=540)
         json_body = {
             "content": content,
             "embed": {
                 "title": event['title'],
                 "url": link,
                 "image": {
-                    "url": event['thumbnail_url'].format(width=960, height=540),
+                    "url": f"{thumbnail_url}?c={event['id']}", # add query param to bust Discord's cache
                 },
             },
             "allowed_mentions": {
