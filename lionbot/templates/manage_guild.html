@@ -10,16 +10,11 @@
 {% block body %}
 <h3>Content Streams</h3>
 {% for stream in streams %}
-<form method="post" action="{{ url_for('update_stream', stream_id=stream.id) }}" autocomplete="off">
+<form method="post" action="{{ url_for('update_stream', guild_id=guild.id, stream_id=stream.id) }}" autocomplete="off">
     <div class="form-row">
         <div class="col-sm-3">
             <div class="form-group">
                 <input class="form-control" name="description" type="text" required autocomplete="off" value="{{ stream.description }}">
-            </div>
-        </div>
-        <div class="col-sm-1 emoji-col">
-            <div class="form-group">
-                <input class="form-control emoji-input" name="emoji" type="text" required autocomplete="off" value="{{ stream.emoji }}">
             </div>
         </div>
         <div class="col-sm">
@@ -51,24 +46,19 @@
           </button>
         </div>
         <div class="col-auto">
-          <button class="btn btn-danger mb-2 delete-button">
+          <a href="{{ url_for('delete_stream', guild_id=guild.id, stream_id=stream.id) }}" class="btn btn-danger mb-2 delete-button">
               <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-          </button>
+          </a>
         </div>
     </div>
 </form>
 {% endfor %}
 <h5>New Content Stream</h5>
-<form method="post" action="{{ url_for('new_stream') }}" autocomplete="off">
+<form method="post" action="{{ url_for('update_stream', guild_id=guild.id) }}" autocomplete="off">
     <div class="form-row">
         <div class="col-sm-3">
             <div class="form-group">
                 <input class="form-control" placeholder="Description" name="description" type="text" required autocomplete="off" value="">
-            </div>
-        </div>
-        <div class="col-sm-1 emoji-col">
-            <div class="form-group">
-                <input class="form-control emoji-input" placeholder="👍" name="emoji" type="text" required autocomplete="off">
             </div>
         </div>
         <div class="col-sm">

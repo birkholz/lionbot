@@ -6,7 +6,7 @@ import urllib.parse
 import feedparser
 import requests
 from discord import Permissions
-from flask import Flask, redirect, request, session, url_for, render_template
+from flask import Flask, redirect, request, session, url_for, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
 from requests import HTTPError
 from sentry_sdk import configure_scope
@@ -14,6 +14,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 
 from lionbot.data import Stream, Guild, Video, TwitchStream
 from lionbot.errors import DiscordError, ValidationException
+from lionbot.forms import StreamForm
 from lionbot.utils import status_successful, init_sentry, int_ids
 
 init_sentry([FlaskIntegration()])
@@ -263,7 +264,7 @@ def guilds():
     return render_template("guilds.html", current_user=current_user, guilds=guilds_managed)
 
 
-@app.route('/manage/<guild_id>', methods=['GET'])
+@app.route('/manage/<int:guild_id>', methods=['GET'])
 def manage_guild(guild_id):
     try:
         guild = call_discord_api(f'/guilds/{guild_id}', bot=True)
@@ -295,13 +296,25 @@ def manage_guild(guild_id):
     )
 
 
-@app.route('/streams/<stream_id>', methods=['POST'])
-def update_stream(stream_id):
-    #TODO
-    pass
+@app.route('/manage/<int:guild_id>/streams', methods=['POST'])
+def update_stream(guild_id):
+    if request.args.get('stream_id'):
+        stream = db.session.query(Stream).filter_by(id=int(request.args['stream_id'])).first()
+    else:
+        stream = Stream(guild_id=guild_id, emoji='👍')
+    form = StreamForm(request.form)
+    if form.validate():
+        form.populate_obj(stream)
+        db.session.add(stream)
+        db.session.commit()
+    else:
+        flash('Form has errors')
+
+    return redirect(url_for('manage_guild', guild_id=guild_id))
 
 
-@app.route('/streams', methods=['POST'])
-def new_stream():
-    #TODO
-    pass
+@app.route('/manage/<int:guild_id>/streams/<int:stream_id>/delete', methods=['GET'])
+def delete_stream(guild_id, stream_id):
+    db.session.query(Stream).filter_by(id=stream_id).delete()
+    db.session.commit()
+    return redirect(url_for('manage_guild', guild_id=guild_id))
