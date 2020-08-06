@@ -152,9 +152,10 @@ def twitch_webhook():
             scope.set_extra("body", request.get_data())
             raise ValidationException()
     json_body = request.get_json()
-    event = json_body['data'][0]
-    if event['type'] == 'live':
-        send_twitch_message(event)
+    if json_body['data']:
+        event = json_body['data'][0]
+        if event['type'] == 'live':
+            send_twitch_message(event)
     return '', 204
 
 
