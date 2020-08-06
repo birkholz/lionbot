@@ -115,6 +115,13 @@ def seed_data():
             'role': 'checkthewire',
             'emoji': '🎙',
             'channel': 'check-the-wire',
-            'name_contains': 'Check the Wire #'
+            'name_contains': 'Check the Wire #',
         },
+        {
+            'desc': 'new episode of Fall Guys',
+            'role': 'fallguys',
+            'emoji': '🤸',
+            'channel': 'fall-guys',
+            'name_contains': 'Fall Guys #',
+        }
     ]
