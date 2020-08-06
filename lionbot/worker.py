@@ -1,11 +1,14 @@
 import logging
 import os
+import re
 
 import discord
+from discord import NotFound, PartialEmoji, HTTPException
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from lionbot.data import Guild, seed_data, Stream
+from lionbot.errors import CommandError
 from lionbot.utils import init_sentry
 
 logging.basicConfig(level=logging.INFO)
@@ -124,9 +127,10 @@ class LionBot(discord.Client):
         await message.remove_reaction(payload.emoji, payload.member)
         await self.toggle_role(disc_guild, payload)
 
-    async def send_role_message(self, channel):
-        guild = session.query(Guild).filter_by(id=channel.guild.id).first()
-        if guild is None:
+    async def send_role_message(self, channel, guild=None):
+        if not guild:
+            guild = session.query(Guild).filter_by(id=channel.guild.id).first()
+        if not guild:
             guild = self.init_guild(channel.guild)
             if guild is None:
                 # Error during init
@@ -134,28 +138,158 @@ class LionBot(discord.Client):
 
         if guild.role_message_id:
             old_channel = discord.utils.get(channel.guild.text_channels, id=guild.role_channel_id)
-            old_message = await old_channel.fetch_message(guild.role_message_id)
-            await old_message.delete()
+            try:
+                old_message = await old_channel.fetch_message(guild.role_message_id)
+                await old_message.delete()
+            except NotFound:
+                pass
 
         streams = session.query(Stream).filter_by(guild_id=channel.guild.id)
         message_text = 'React to this message to be mentioned when:'
         for stream in streams:
-            message_text += f'\n{stream.emoji} - {stream.description}'
+            if stream.emoji_id:
+                emoji = f'<:{stream.emoji}:{stream.emoji_id}>'
+            else:
+                emoji = stream.emoji
+            message_text += f'\n{emoji} - {stream.description}'
         role_message = await channel.send(message_text)
         for stream in streams:
-            await role_message.add_reaction(stream.emoji)
+            if stream.emoji_id:
+                emoji = PartialEmoji(name=stream.emoji, id=stream.emoji_id)
+            else:
+                emoji = stream.emoji
+            await role_message.add_reaction(emoji)
 
         guild.role_channel_id = channel.id
         guild.role_message_id = role_message.id
         session.commit()
 
+    async def set_stream_emoji(self, message):
+        channel, emoji = self.parse_args(message.content, count=2)
+        channel_id = re.match('<#(\d+)>', channel).groups()[0]
+        emoji_match = re.match('<:(\w+):(\d+)>', emoji)
+        if emoji_match:
+            emoji_name, emoji_id = emoji_match.groups()
+        else:
+            emoji_name = emoji
+            emoji_id = None
+        stream = session.query(Stream).filter_by(channel_id=channel_id).first()
+        if not stream:
+            raise CommandError('Invalid channel.')
+        stream.emoji = emoji_name
+        stream.emoji_id = emoji_id
+        session.add(stream)
+        session.commit()
+
+        channel = discord.utils.get(self.get_all_channels(), id=stream.guild.role_channel_id)
+        await self.send_role_message(channel, guild=stream.guild)
+
+    def is_moderator(self, author):
+        for role in author.roles:
+            if role.name == 'Moderator':
+                return True
+        return False
+
+    def parse_args(self, msg, count=1, maxsplits=None):
+        if maxsplits:
+            args = msg.split(' ', 2+maxsplits)[2:]
+        else:
+            args = msg.split(' ')[2:]
+        if len(args) < count:
+            raise CommandError('Not enough arguments.')
+        if len(args) > count:
+            raise CommandError('Too many arguments.')
+        return args
+
+    async def delete_stream(self, message):
+        args = self.parse_args(message.content)
+        channel_id = self.parse_channel(args[0])
+
+        stream = session.query(Stream).filter_by(channel_id=channel_id).first()
+        if not stream:
+            raise CommandError('Invalid channel.')
+
+        role_channel_id = stream.guild.role_channel_id
+        guild = stream.guild
+        session.query(Stream).filter_by(channel_id=channel_id).delete()
+        session.commit()
+
+        channel = discord.utils.get(self.get_all_channels(), id=role_channel_id)
+        await self.send_role_message(channel, guild=guild)
+
+    def parse_emoji(self, tag):
+        name = tag
+        e_id = None
+        match = re.match('<:(\w+):(\d+)>', tag)
+        if match:
+            name, e_id = match.groups()
+        return name, e_id
+
+    def parse_channel(self, tag):
+        return re.match('<#(\d+)>', tag).groups()[0]
+
+    def parse_role(self, tag):
+        return re.match('<@&(\d+)>', tag).groups()[0]
+
+    async def create_stream(self, message):
+        channel, role, emoji, name = self.parse_args(message.content, count=4, maxsplits=3)
+        channel_id = self.parse_channel(channel)
+        role_id = self.parse_role(role)
+        emoji_name, emoji_id = self.parse_emoji(emoji)
+        stream = Stream(
+            guild_id=message.guild.id,
+            description=f"New episode of {name}",
+            title_contains=name,
+            emoji=emoji_name,
+            emoji_id=emoji_id,
+            channel_id=channel_id,
+            role_id=role_id
+        )
+        session.add(stream)
+        session.commit()
+
+
+        guild = session.query(Guild).filter_by(id=message.guild.id).first()
+        channel = discord.utils.get(self.get_all_channels(), id=guild.role_channel_id)
+        await self.send_role_message(channel, guild=guild)
+
     async def on_message(self, message):
+        if message.content == '!lion help':
+            if self.is_moderator(message.author):
+                msg = 'Commands:\n' \
+                      'roles - Posts the role message in the current channel\n' \
+                      'add - Adds a new content stream\n' \
+                      'emoji - Changes the emoji of a content stream\n' \
+                      'delete - Deletes a content stream'
+                await message.channel.send(msg)
+
         if message.content == '!lion roles':
-            for role in message.author.roles:
-                if role.name == 'Moderator':
-                    await message.delete()
-                    await self.send_role_message(message.channel)
-                    break
+            if self.is_moderator(message.author):
+                await self.send_role_message(message.channel)
+
+        if message.content[:11] == '!lion emoji':
+            if self.is_moderator(message.author):
+                try:
+                    await self.set_stream_emoji(message)
+                except CommandError as e:
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion emoji #channel 👍')
+                except HTTPException as e:
+                    await message.channel.send('ERROR :(')
+                    raise e
+
+        if message.content[:12] == '!lion delete':
+            if self.is_moderator(message.author):
+                try:
+                    await self.delete_stream(message)
+                except CommandError as e:
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion delete #channel')
+
+        if message.content[:9] == '!lion add':
+            if self.is_moderator(message.author):
+                try:
+                    await self.create_stream(message)
+                except CommandError as e:
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion add #channel @role 👍 Game Name')
 
 
 discord_client = LionBot()

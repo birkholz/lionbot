@@ -26,6 +26,7 @@ class Stream(Base):
     guild_id = Column(BigInteger, ForeignKey('guilds.id'))
     description = Column(String) # The description given in the role message
     emoji = Column(String) # The unicode emoji of the reaction on the role message
+    emoji_id = Column(BigInteger, nullable=True) # For non-default emojis
     title_contains = Column(String) # The text to look for in a YouTube title to associate it with this stream
     # Populated from Discord's API
     role_id = Column(BigInteger)
