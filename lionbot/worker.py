@@ -253,6 +253,14 @@ class LionBot(discord.Client):
         channel = discord.utils.get(self.get_all_channels(), id=guild.role_channel_id)
         await self.send_role_message(channel, guild=guild)
 
+    def toggle_pinning(self, channel):
+        guild = session.query(Guild).filter_by(id=channel.guild.id).first()
+        if not guild:
+            return
+        guild.pinning_enabled = not guild.pinning_enabled
+        session.add(guild)
+        session.commit()
+
     async def on_message(self, message):
         if message.content == '!lion help':
             if self.is_moderator(message.author):
@@ -290,6 +298,10 @@ class LionBot(discord.Client):
                     await self.create_stream(message)
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion add #channel @role 👍 Game Name')
+
+        if message.content[:13] == '!lion pinning':
+            if self.is_moderator(message.author):
+                self.toggle_pinning(message.channel)
 
 
 discord_client = LionBot()

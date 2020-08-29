@@ -67,13 +67,14 @@ def send_youtube_message(video):
             response = send_discord_request('post', f"channels/{channel_id}/messages", json_body)
             message_id = response['id']
 
-            # Unpin previous, pin new
-            if stream.latest_message_id:
-                send_discord_request('delete', f"channels/{channel_id}/pins/{stream.latest_message_id}")
-            send_discord_request('put', f"channels/{channel_id}/pins/{message_id}")
+            if stream.guild.pinning_enabled:
+                # Unpin previous, pin new
+                if stream.latest_message_id:
+                    send_discord_request('delete', f"channels/{channel_id}/pins/{stream.latest_message_id}")
+                send_discord_request('put', f"channels/{channel_id}/pins/{message_id}")
 
-            stream.latest_message_id = message_id
-            db.session.add(stream)
+                stream.latest_message_id = message_id
+                db.session.add(stream)
 
             obj = Video(id=video.id, guild_id=stream.guild_id)
             db.session.add(obj)
@@ -88,12 +89,12 @@ def youtube_webhook():
             return challenge, 200
         return '', 405
 
-    # if not check_signature(request):
-    #     with configure_scope() as scope:
-    #         scope.set_extra("source", "YouTube")
-    #         scope.set_extra("sha", request.headers['X-Hub-Signature'])
-    #         scope.set_extra("body", request.get_data())
-    #         raise ValidationException()
+    if not check_signature(request):
+        with configure_scope() as scope:
+            scope.set_extra("source", "YouTube")
+            scope.set_extra("sha", request.headers['X-Hub-Signature'])
+            scope.set_extra("body", request.get_data())
+            raise ValidationException()
 
     video = feedparser.parse(request.data).entries[0]
     send_youtube_message(video)
@@ -128,12 +129,13 @@ def send_twitch_message(event):
         response = send_discord_request('post', f"/channels/{channel_id}/messages", json_body)
         message_id = response['id']
 
-        if stream.latest_message_id:
-            send_discord_request('delete', f"channels/{channel_id}/pins/{stream.latest_message_id}")
-        send_discord_request('put', f"channels/{channel_id}/pins/{message_id}")
+        if guild.pinning_enabled:
+            if stream.latest_message_id:
+                send_discord_request('delete', f"channels/{channel_id}/pins/{stream.latest_message_id}")
+            send_discord_request('put', f"channels/{channel_id}/pins/{message_id}")
 
-        stream.latest_message_id = message_id
-        db.session.add(stream)
+            stream.latest_message_id = message_id
+            db.session.add(stream)
 
         obj = TwitchStream(id=event['id'], guild_id=guild.id)
         db.session.add(obj)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, BigInteger, Index
+from sqlalchemy import Column, Integer, String, ForeignKey, BigInteger, Index, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -15,6 +15,7 @@ class Guild(Base):
     twitch_stream_id = Column(Integer, ForeignKey('streams.id'))
     twitch_stream = relationship("Stream", foreign_keys=twitch_stream_id)
     streams = relationship("Stream", backref="guild", foreign_keys="Stream.guild_id")
+    pinning_enabled = Column(Boolean, default=True)
 
     def __repr__(self):
         return f"<Guild {self.id} name='{self.name}'>"
