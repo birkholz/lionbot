@@ -31,6 +31,7 @@ class Stream(Base):
     # Populated from Discord's API
     role_id = Column(BigInteger)
     channel_id = Column(BigInteger)
+    latest_message_id = Column(BigInteger) # The ID of the latest message posted in the channel
 
     def __repr__(self):
         return f"<Stream {self.id} description='{self.description}'>"
