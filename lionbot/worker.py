@@ -253,13 +253,15 @@ class LionBot(discord.Client):
         channel = discord.utils.get(self.get_all_channels(), id=guild.role_channel_id)
         await self.send_role_message(channel, guild=guild)
 
-    def toggle_pinning(self, channel):
+    async def toggle_pinning(self, channel):
         guild = session.query(Guild).filter_by(id=channel.guild.id).first()
         if not guild:
             return
-        guild.pinning_enabled = not guild.pinning_enabled
+        new_value = not guild.pinning_enabled
+        guild.pinning_enabled = new_value
         session.add(guild)
         session.commit()
+        await channel.send(f'Auto-pinning turned: {"ON" if new_value else "OFF" }')
 
     async def on_message(self, message):
         if message.content == '!lion help':
@@ -268,7 +270,8 @@ class LionBot(discord.Client):
                       'roles - Posts the role message in the current channel\n' \
                       'add - Adds a new content stream\n' \
                       'emoji - Changes the emoji of a content stream\n' \
-                      'delete - Deletes a content stream'
+                      'delete - Deletes a content stream\n' \
+                      'pinning - Toggles auto-pinning'
                 await message.channel.send(msg)
 
         if message.content == '!lion roles':
@@ -301,7 +304,7 @@ class LionBot(discord.Client):
 
         if message.content[:13] == '!lion pinning':
             if self.is_moderator(message.author):
-                self.toggle_pinning(message.channel)
+                await self.toggle_pinning(message.channel)
 
 
 discord_client = LionBot()
