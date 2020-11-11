@@ -106,7 +106,13 @@ class LionBot(discord.Client):
         stream = session.query(Stream).filter_by(emoji=payload.emoji.name).first()
         if not stream:
             logging.error(f"No stream found for emoji: {payload.emoji.name}")
-        role = guild.get_role(stream.role_id)
+
+        roles = await guild.fetch_roles() # Bypasses cache
+        role = None
+        for r in roles:
+            if r.id == stream.role_id:
+                role = r
+        # role = guild.get_role(stream.role_id) # Cache is bad!
         if role is not None:
             if role in payload.member.roles:
                 await payload.member.remove_roles(role, reason="Reacted to role message.")
