@@ -68,33 +68,36 @@ class LionBot(discord.Client):
         # Handle twitch stream separately so we can get an ID
         self.init_twitch_stream(guild, disc_guild)
 
-        for seed in seed_data():
-            channel = discord.utils.get(disc_guild.text_channels, name=seed['channel'])
-            role = discord.utils.get(disc_guild.roles, name=seed['role'])
-            if channel is None:
-                logging.error(f"Channel not found: {seed['channel']}")
-                continue
-            if role is None:
-                logging.error(f"Role not found: {seed['role']}")
-                continue
+        # Skipping seed data for now, its safer to add each manually
 
-            stream = session.query(Stream).filter_by(guild_id=channel.guild.id, channel_id=channel.id).first()
-            if stream:
-                stream.description = seed['desc']
-                stream.emoji = seed['emoji']
-                stream.title_contains = seed.get('name_contains')
-                stream.channel_id = channel.id
-                stream.role_id = role.id
-            else:
-                stream = Stream(
-                    guild_id=channel.guild.id,
-                    description=seed['desc'],
-                    emoji=seed['emoji'],
-                    title_contains=seed.get('name_contains'),
-                    channel_id=channel.id,
-                    role_id=role.id,
-                )
-            session.add(stream)
+        # for seed in seed_data():
+        #     channel = discord.utils.get(disc_guild.text_channels, name=seed['channel'])
+        #     role = discord.utils.get(disc_guild.roles, name=seed['role'])
+        #     if channel is None:
+        #         logging.error(f"Channel not found: {seed['channel']}")
+        #         continue
+        #     if role is None:
+        #         logging.error(f"Role not found: {seed['role']}")
+        #         continue
+        #
+        #     stream = session.query(Stream).filter_by(guild_id=channel.guild.id, channel_id=channel.id).first()
+        #     if stream:
+        #         stream.description = seed['desc']
+        #         stream.emoji = seed['emoji']
+        #         stream.title_contains = seed.get('name_contains')
+        #         stream.channel_id = channel.id
+        #         stream.role_id = role.id
+        #     else:
+        #         stream = Stream(
+        #             guild_id=channel.guild.id,
+        #             description=seed['desc'],
+        #             emoji=seed['emoji'],
+        #             title_contains=seed.get('name_contains'),
+        #             channel_id=channel.id,
+        #             role_id=role.id,
+        #         )
+        #     session.add(stream)
+
         session.commit()
 
         return guild

@@ -63,20 +63,20 @@ class TwitchStream(Base):
 
 def seed_data():
     return [
-        {
-            'desc': 'new episode of Northernlion Tries',
-            'role': 'nltries',
-            'emoji': '🎮',
-            'channel': 'northernlion-tries',
-            'name_contains': '(Northernlion Tries)',
-        },
-        {
-            'desc': 'new episode of The Golden Goblet',
-            'role': 'goblet',
-            'emoji': '🏆',
-            'channel': 'golden-goblet',
-            'name_contains': '(Golden Goblet',
-        },
+        # {
+        #     'desc': 'new episode of Northernlion Tries',
+        #     'role': 'nltries',
+        #     'emoji': '🎮',
+        #     'channel': 'northernlion-tries',
+        #     'name_contains': '(Northernlion Tries)',
+        # },
+        # {
+        #     'desc': 'new episode of The Golden Goblet',
+        #     'role': 'goblet',
+        #     'emoji': '🏆',
+        #     'channel': 'golden-goblet',
+        #     'name_contains': '(Golden Goblet',
+        # },
         {
             'desc': 'new episode of Binding of Isaac',
             'role': 'isaac',
@@ -84,46 +84,50 @@ def seed_data():
             'channel': 'isaac',
             'name_contains': 'The Binding of Isaac:',
         },
-        {
-            'desc': 'new episode of Monster Train',
-            'role': 'monstertrain',
-            'emoji': '🚆',
-            'channel': 'monster-train',
-            'name_contains': 'Monster Train (Episode',
-        },
-        {
-            'desc': 'new episode of GeoGuessr',
-            'role': 'geo',
-            'emoji': '🌎',
-            'channel': 'geoguessr',
-            'name_contains': 'Geoguessr with Sinvicta'
-        },
-        {
-            'desc': 'new episode of Trackmania',
-            'role': 'trackmania',
-            'emoji': '🏎',
-            'channel': 'trackmania',
-            'name_contains': 'Trackmania TOTD',
-        },
-        {
-            'desc': 'new episode of Super Mega Baseball',
-            'role': 'baseball',
-            'emoji': '⚾',
-            'channel': 'baseball',
-            'name_contains': 'Super Mega Baseball 3',
-        },
-        {
-            'desc': 'new episode of Check The Wire',
-            'role': 'checkthewire',
-            'emoji': '🎙',
-            'channel': 'check-the-wire',
-            'name_contains': 'Check the Wire #',
-        },
+        # {
+        #     'desc': 'new episode of Monster Train',
+        #     'role': 'monstertrain',
+        #     'emoji': '🚆',
+        #     'channel': 'monster-train',
+        #     'name_contains': 'Monster Train (Episode',
+        # },
+        # {
+        #     'desc': 'new episode of GeoGuessr',
+        #     'role': 'geo',
+        #     'emoji': '🌎',
+        #     'channel': 'geoguessr',
+        #     'name_contains': 'Geoguessr with Sinvicta'
+        # },
+        # {
+        #     'desc': 'new episode of Trackmania',
+        #     'role': 'trackmania',
+        #     'emoji': '🏎',
+        #     'channel': 'trackmania',
+        #     'name_contains': 'Trackmania TOTD',
+        # },
+        # {
+        #     'desc': 'new episode of Super Mega Baseball',
+        #     'role': 'baseball',
+        #     'emoji': '⚾',
+        #     'channel': 'baseball',
+        #     'name_contains': 'Super Mega Baseball 3',
+        # },
+        # {
+        #     'desc': 'new episode of Check The Wire',
+        #     'role': 'checkthewire',
+        #     'emoji': '🎙',
+        #     'channel': 'check-the-wire',
+        #     'name_contains': 'Check the Wire #',
+        # },
         {
             'desc': 'new episode of Fall Guys',
             'role': 'fallguys',
             'emoji': '🤸',
             'channel': 'fall-guys',
-            'name_contains': 'Fall Guys #',
+            'name_contains': '| Fall Guys',
+        },
+        {
+            'desc': 'new episode of Spelunky 2',
+            'role': ''
         }
     ]
