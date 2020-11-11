@@ -103,16 +103,11 @@ class LionBot(discord.Client):
         return guild
 
     async def toggle_role(self, guild, payload):
-        stream = session.query(Stream).filter_by(emoji=payload.emoji.name).first()
+        stream = session.query(Stream).filter_by(guild_id=guild.id, emoji=payload.emoji.name).first()
         if not stream:
             logging.error(f"No stream found for emoji: {payload.emoji.name}")
 
-        roles = await guild.fetch_roles() # Bypasses cache
-        role = None
-        for r in roles:
-            if r.id == stream.role_id:
-                role = r
-        # role = guild.get_role(stream.role_id) # Cache is bad!
+        role = guild.get_role(stream.role_id)
         if role is not None:
             if role in payload.member.roles:
                 await payload.member.remove_roles(role, reason="Reacted to role message.")
