@@ -112,6 +112,8 @@ class LionBot(discord.Client):
                 await payload.member.remove_roles(role, reason="Reacted to role message.")
             else:
                 await payload.member.add_roles(role, reason="Reacted to role message.")
+        else:
+            logging.error(f"Role id {stream.role_id} not found.")
 
     async def on_raw_reaction_add(self, payload):
         if payload.user_id == self.user.id:
