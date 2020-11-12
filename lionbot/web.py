@@ -9,7 +9,7 @@ from discord import Permissions
 from flask import Flask, redirect, request, session, url_for, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
 from requests import HTTPError
-from sentry_sdk import configure_scope
+from sentry_sdk import configure_scope, capture_exception
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 from lionbot.data import Stream, Guild, Video, TwitchStream
@@ -45,7 +45,12 @@ def send_youtube_message(video):
             }
 
             channel_id = stream.channel_id
-            response = send_discord_request('post', f"channels/{channel_id}/messages", json_body)
+            try:
+                response = send_discord_request('post', f"channels/{channel_id}/messages", json_body)
+            except DiscordError as e:
+                capture_exception(e)
+                continue
+
             message_id = response['id']
 
             if stream.guild.pinning_enabled:
@@ -107,7 +112,12 @@ def send_twitch_message(event):
             }
         }
         channel_id = stream.channel_id
-        response = send_discord_request('post', f"/channels/{channel_id}/messages", json_body)
+        try:
+            response = send_discord_request('post', f"channels/{channel_id}/messages", json_body)
+        except DiscordError as e:
+            capture_exception(e)
+            continue
+
         message_id = response['id']
 
         if guild.pinning_enabled:
