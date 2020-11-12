@@ -53,14 +53,18 @@ def send_youtube_message(video):
 
             message_id = response['id']
 
-            if stream.guild.pinning_enabled:
-                # Unpin previous, pin new
-                if stream.latest_message_id:
-                    send_discord_request('delete', f"channels/{channel_id}/pins/{stream.latest_message_id}")
-                send_discord_request('put', f"channels/{channel_id}/pins/{message_id}")
+            try:
+                if stream.guild.pinning_enabled:
+                    # Unpin previous, pin new
+                    if stream.latest_message_id:
+                        send_discord_request('delete', f"channels/{channel_id}/pins/{stream.latest_message_id}")
+                    send_discord_request('put', f"channels/{channel_id}/pins/{message_id}")
 
-                stream.latest_message_id = message_id
-                db.session.add(stream)
+                    stream.latest_message_id = message_id
+                    db.session.add(stream)
+            except DiscordError as e:
+                capture_exception(e)
+                continue
 
             obj = Video(id=video.id, guild_id=stream.guild_id)
             db.session.add(obj)
@@ -120,13 +124,17 @@ def send_twitch_message(event):
 
         message_id = response['id']
 
-        if guild.pinning_enabled:
-            if stream.latest_message_id:
-                send_discord_request('delete', f"channels/{channel_id}/pins/{stream.latest_message_id}")
-            send_discord_request('put', f"channels/{channel_id}/pins/{message_id}")
+        try:
+            if guild.pinning_enabled:
+                if stream.latest_message_id:
+                    send_discord_request('delete', f"channels/{channel_id}/pins/{stream.latest_message_id}")
+                send_discord_request('put', f"channels/{channel_id}/pins/{message_id}")
 
-            stream.latest_message_id = message_id
-            db.session.add(stream)
+                stream.latest_message_id = message_id
+                db.session.add(stream)
+        except DiscordError as e:
+            capture_exception(e)
+            continue
 
         obj = TwitchStream(id=event['id'], guild_id=guild.id)
         db.session.add(obj)
