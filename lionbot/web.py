@@ -30,7 +30,7 @@ discord_api_root = 'https://discord.com/api/v6'
 
 def send_youtube_message(video):
     for stream in db.session.query(Stream).all():
-        posted = db.session.query(Video).filter_by(id=video.id, guild_id=stream.guild_id).count()
+        posted = db.session.query(Video).filter_by(video_id=video.id, guild_id=stream.guild_id).count()
         if posted > 0:
             # Already posted, don't repost
             continue
@@ -66,7 +66,7 @@ def send_youtube_message(video):
                 capture_exception(e)
                 continue
 
-            obj = Video(id=video.id, guild_id=stream.guild_id)
+            obj = Video(video_id=video.id, guild_id=stream.guild_id)
             db.session.add(obj)
             db.session.commit()
 
@@ -93,7 +93,7 @@ def youtube_webhook():
 
 def send_twitch_message(event):
     for guild in db.session.query(Guild).all():
-        posted = db.session.query(TwitchStream).filter_by(id=event['id'], guild_id=guild.id).count()
+        posted = db.session.query(TwitchStream).filter_by(twitch_id=event['id'], guild_id=guild.id).count()
         if posted > 0:
             # Already posted, don't repost
             continue
@@ -136,7 +136,7 @@ def send_twitch_message(event):
             capture_exception(e)
             continue
 
-        obj = TwitchStream(id=event['id'], guild_id=guild.id)
+        obj = TwitchStream(twitch_id=event['id'], guild_id=guild.id)
         db.session.add(obj)
         db.session.commit()
 

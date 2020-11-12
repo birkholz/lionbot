@@ -14,8 +14,10 @@ class Guild(Base):
     role_message_id = Column(BigInteger, nullable=True)
     twitch_stream_id = Column(Integer, ForeignKey('streams.id'))
     twitch_stream = relationship("Stream", foreign_keys=twitch_stream_id)
+    # twitter_stream_id = Column(Integer, ForeignKey('streams.id'), nullable=True)
+    # twitter_stream = relationship("Stream", foreign_keys=twitter_stream_id)
     streams = relationship("Stream", backref="guild", foreign_keys="Stream.guild_id")
-    pinning_enabled = Column(Boolean, default=True)
+    pinning_enabled = Column(Boolean, default=True, nullable=False)
 
     def __repr__(self):
         return f"<Guild {self.id} name='{self.name}'>"
@@ -43,10 +45,11 @@ class Video(Base):
     Saves the videos received by YouTube's webhook to prevent reposts
     """
     __tablename__ = 'videos'
-    id = Column(String, primary_key=True) # YouTube's video ID
+    id = Column(Integer, primary_key=True)
+    video_id = Column(String) # YouTube's video ID
     guild_id = Column(BigInteger, ForeignKey('guilds.id'))
 
-    Index('videos_id_guild_id', 'id', 'guild_id', unique=True)
+    Index('videos_video_id_guild_id', 'video_id', 'guild_id', unique=True)
 
 
 class TwitchStream(Base):
@@ -55,10 +58,11 @@ class TwitchStream(Base):
     Twitch's webhooks do not differentiate between new streams and game name updates.
     """
     __tablename__ = 'twitch_streams'
-    id = Column(BigInteger, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    twitch_id = Column(BigInteger)
     guild_id = Column(BigInteger, ForeignKey('guilds.id'))
 
-    Index('twitch_streams_id_guild_id', 'id', 'guild_id', unique=True)
+    Index('twitch_streams_twitch_id_guild_id', 'twitch_id', 'guild_id', unique=True)
 
 
 def seed_data():
