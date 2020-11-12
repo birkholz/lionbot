@@ -15,7 +15,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from lionbot.data import Stream, Guild, Video, TwitchStream
 from lionbot.errors import DiscordError, ValidationException
 from lionbot.forms import StreamForm
-from lionbot.utils import status_successful, init_sentry, int_ids
+from lionbot.utils import init_sentry, int_ids, send_discord_request
 
 init_sentry([FlaskIntegration()])
 
@@ -28,31 +28,12 @@ db = SQLAlchemy(app)
 discord_api_root = 'https://discord.com/api/v6'
 
 
-def send_discord_request(method, endpoint, body=None):
-    message_url = f"https://discordapp.com/api/{endpoint}"
-    headers = {
-        "Authorization": f"Bot {os.environ.get('DISCORD_TOKEN')}",
-        "Content-Type": "application/json",
-    }
-
-    response = requests.request(method, message_url, headers=headers, json=body)
-    if not status_successful(response.status_code):
-        with configure_scope() as scope:
-            scope.set_extra("source", "Discord")
-            scope.set_extra("request.body", body)
-            scope.set_extra("response.body", response.content)
-            raise DiscordError()
-
-    if response.status_code != 204:
-        return response.json()
-
-
 def send_youtube_message(video):
     for stream in db.session.query(Stream).all():
         posted = db.session.query(Video).filter_by(id=video.id, guild_id=stream.guild_id).count()
         if posted > 0:
             # Already posted, don't repost
-            return
+            continue
 
         if stream.title_contains is not None and stream.title_contains in video.title:
             content = f"<@&{stream.role_id}>\n{video.link}"
@@ -106,7 +87,7 @@ def send_twitch_message(event):
         posted = db.session.query(TwitchStream).filter_by(id=event['id'], guild_id=guild.id).count()
         if posted > 0:
             # Already posted, don't repost
-            return
+            continue
 
         stream = guild.twitch_stream
         link = 'https://www.twitch.tv/northernlion'
