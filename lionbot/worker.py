@@ -357,7 +357,7 @@ class LionBot(discord.Client):
         await channel.send(f'Auto-pinning turned: {"ON" if new_value else "OFF" }')
 
     async def count_role(self, message):
-        role = self.parse_args(message.content, count=1)
+        role = self.parse_args(message.content, count=1)[0]
         role_id = self.parse_role(role)
 
         guild = message.channel.guild
