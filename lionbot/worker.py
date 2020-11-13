@@ -389,19 +389,19 @@ class LionBot(discord.Client):
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion delete @role')
 
+        if message.content[:15] == '!lion addcustom':
+            if self.is_moderator(message.author):
+                try:
+                    await self.create_custom_role(message)
+                except CommandError as e:
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion addcustom @role 👍 Role Description')
+
         if message.content[:9] == '!lion add':
             if self.is_moderator(message.author):
                 try:
                     await self.create_stream(message)
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion add #channel @role 👍 Game Name')
-
-        if message.content[:14] == '!lion addcustom':
-            if self.is_moderator(message.author):
-                try:
-                    await self.create_custom_role(message)
-                except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion addcustom @role 👍 Role Description')
 
         if message.content[:13] == '!lion pinning':
             if self.is_moderator(message.author):
