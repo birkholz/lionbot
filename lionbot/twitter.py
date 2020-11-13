@@ -65,6 +65,7 @@ def start_stream(wait=30):
         run_stream()
     except TwitterRequestError as e:
         if e.status_code == 429:
+            stream = None
             logging.info(f'Waiting {wait} seconds to retry...')
             time.sleep(wait)
             start_stream(wait=wait+30)
