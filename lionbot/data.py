@@ -24,6 +24,12 @@ class Guild(Base):
 
 
 class Stream(Base):
+    """
+    Holds the info for a subscribe-able role.
+    Streams with `title_contains` are used to match YouTube videos with a channel/role.
+    Twitch and Twitter streams do not have `title_contains`, and have FKs from Guild.
+    Custom roles do not have `title_contains` or `channel_id`.
+    """
     __tablename__ = 'streams'
     id = Column(Integer, primary_key=True)
     guild_id = Column(BigInteger, ForeignKey('guilds.id'))

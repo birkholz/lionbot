@@ -3,7 +3,7 @@ import os
 import re
 
 import discord
-from discord import NotFound, PartialEmoji, HTTPException, Game
+from discord import NotFound, PartialEmoji, HTTPException, CustomActivity, AllowedMentions
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -25,7 +25,8 @@ init_sentry()
 
 class LionBot(discord.Client):
     async def on_ready(self):
-        await discord_client.change_presence(activity=Game("I don't read messages."))
+        state = "See #roles for info"
+        await discord_client.change_presence(activity=CustomActivity('Custom Status', state=state))
         print('Logged on as {0}!'.format(self.user))
 
     async def on_guild_join(self, disc_guild):
@@ -151,16 +152,49 @@ class LionBot(discord.Client):
             except NotFound:
                 pass
 
-        streams = session.query(Stream).filter_by(guild_id=channel.guild.id)
-        message_text = 'React to this message to be mentioned when:'
+        streams = session.query(Stream).filter_by(guild_id=guild.id)
+        twitch_stream = None
+        twitter_stream = None
+        content_streams = []
+        custom_roles = []
         for stream in streams:
+            if stream.id == guild.twitch_stream_id:
+                twitch_stream = stream
+            elif stream.id == guild.twitter_stream_id:
+                twitter_stream = stream
+            elif stream.title_contains is None:
+                custom_roles.append(stream)
+            else:
+                content_streams.append(stream)
+
+        # Always put twitch/twitter first
+        content_streams = [twitch_stream, twitter_stream] + content_streams
+
+        # Build message
+        message_text = 'React to this message to be mentioned when:'
+        for stream in content_streams:
             if stream.emoji_id:
                 emoji = f'<:{stream.emoji}:{stream.emoji_id}>'
             else:
                 emoji = stream.emoji
             message_text += f'\n{emoji} - {stream.description}'
-        role_message = await channel.send(message_text)
-        for stream in streams:
+
+        # get custom roles
+        if custom_roles:
+            message_text += 'Or manage your other roles:'
+            for stream in custom_roles:
+                if stream.emoji_id:
+                    emoji = f'<:{stream.emoji}:{stream.emoji_id}>'
+                else:
+                    emoji = stream.emoji
+                # Custom roles show the role given
+                role = f'<@&{stream.role_id}>'
+                message_text += f'\n{emoji} - {role} {stream.description}'
+
+        role_message = await channel.send(message_text, allowed_mentions=AllowedMentions.none())
+
+        # Add Reactions
+        for stream in content_streams:
             if stream.emoji_id:
                 emoji = PartialEmoji(name=stream.emoji, id=stream.emoji_id)
             else:
@@ -212,15 +246,15 @@ class LionBot(discord.Client):
 
     async def delete_stream(self, message):
         args = self.parse_args(message.content)
-        channel_id = self.parse_channel(args[0])
+        role_id = self.parse_role(args[0])
 
-        stream = session.query(Stream).filter_by(channel_id=channel_id).first()
+        stream = session.query(Stream).filter_by(role_id=role_id).first()
         if not stream:
             raise CommandError('Invalid channel.')
 
         role_channel_id = stream.guild.role_channel_id
         guild = stream.guild
-        session.query(Stream).filter_by(channel_id=channel_id).delete()
+        session.query(Stream).filter_by(role_id=role_id).delete()
         session.commit()
 
         channel = discord.utils.get(self.get_all_channels(), id=role_channel_id)
@@ -252,6 +286,24 @@ class LionBot(discord.Client):
             emoji=emoji_name,
             emoji_id=emoji_id,
             channel_id=channel_id,
+            role_id=role_id
+        )
+        session.add(stream)
+        session.commit()
+
+        guild = session.query(Guild).filter_by(id=message.guild.id).first()
+        channel = discord.utils.get(self.get_all_channels(), id=guild.role_channel_id)
+        await self.send_role_message(channel, guild=guild)
+
+    async def create_custom_role(self, message):
+        role, emoji, description = self.parse_args(message.content, count=3, maxsplits=2)
+        role_id = self.parse_role(role)
+        emoji_name, emoji_id = self.parse_emoji(emoji)
+        stream = Stream(
+            guild_id=message.guild.id,
+            description=description,
+            emoji=emoji_name,
+            emoji_id=emoji_id,
             role_id=role_id
         )
         session.add(stream)
@@ -309,6 +361,7 @@ class LionBot(discord.Client):
                 msg = 'Commands:\n' \
                       'roles - Posts the role message in the current channel\n' \
                       'add - Adds a new content stream\n' \
+                      'addcustom - Adds a custom role\n' \
                       'emoji - Changes the emoji of a content stream\n' \
                       'delete - Deletes a content stream\n' \
                       'pinning - Toggles auto-pinning\n' \
@@ -334,7 +387,7 @@ class LionBot(discord.Client):
                 try:
                     await self.delete_stream(message)
                 except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion delete #channel')
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion delete @role')
 
         if message.content[:9] == '!lion add':
             if self.is_moderator(message.author):
@@ -342,6 +395,13 @@ class LionBot(discord.Client):
                     await self.create_stream(message)
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion add #channel @role 👍 Game Name')
+
+        if message.content[:14] == '!lion addcustom':
+            if self.is_moderator(message.author):
+                try:
+                    await self.create_custom_role(message)
+                except CommandError as e:
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion addcustom @role 👍 Role Description')
 
         if message.content[:13] == '!lion pinning':
             if self.is_moderator(message.author):
