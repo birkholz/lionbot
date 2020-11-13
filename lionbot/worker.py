@@ -368,7 +368,7 @@ class LionBot(discord.Client):
         count = 0
         for member in guild.members:
             for role in member.roles:
-                if role.id == role_id:
+                if str(role.id) == str(role_id):
                     count += 1
 
         message_text = f'Users with role <@&{role_id}>: {count}'
