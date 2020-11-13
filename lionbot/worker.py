@@ -194,7 +194,7 @@ class LionBot(discord.Client):
         role_message = await channel.send(message_text, allowed_mentions=AllowedMentions.none())
 
         # Add Reactions
-        for stream in content_streams:
+        for stream in streams:
             if stream.emoji_id:
                 emoji = PartialEmoji(name=stream.emoji, id=stream.emoji_id)
             else:
