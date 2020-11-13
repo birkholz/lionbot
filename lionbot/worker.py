@@ -3,7 +3,7 @@ import os
 import re
 
 import discord
-from discord import NotFound, PartialEmoji, HTTPException, CustomActivity
+from discord import NotFound, PartialEmoji, HTTPException, Game
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -25,7 +25,7 @@ init_sentry()
 
 class LionBot(discord.Client):
     async def on_ready(self):
-        await discord_client.change_presence(activity=CustomActivity("I don't read messages."))
+        await discord_client.change_presence(activity=Game("I don't read messages."))
         print('Logged on as {0}!'.format(self.user))
 
     async def on_guild_join(self, disc_guild):
