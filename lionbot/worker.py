@@ -181,7 +181,7 @@ class LionBot(discord.Client):
 
         # get custom roles
         if custom_roles:
-            message_text += 'Or manage your other roles:'
+            message_text += '\n\nOr manage your other roles:'
             for stream in custom_roles:
                 if stream.emoji_id:
                     emoji = f'<:{stream.emoji}:{stream.emoji_id}>'

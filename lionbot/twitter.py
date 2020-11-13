@@ -59,7 +59,7 @@ def run_stream():
             send_tweet_message(msg['data'])
 
 
-def start_stream(wait=2):
+def start_stream(wait=30):
     logging.info("Twitter stream starting...")
     try:
         run_stream()
@@ -67,7 +67,7 @@ def start_stream(wait=2):
         if e.status_code == 429:
             logging.info(f'Waiting {wait} seconds to retry...')
             time.sleep(wait)
-            start_stream(wait=wait*2)
+            start_stream(wait=wait+30)
 
 
 def signal_handler(signal, frame):
