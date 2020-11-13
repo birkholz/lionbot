@@ -226,7 +226,7 @@ class LionBot(discord.Client):
         await self.send_role_message(channel, guild=stream.guild)
 
     def is_moderator(self, author):
-        if author.id == '140333328241786880': # My id
+        if str(author.id) == '140333328241786880': # My id
             return True
         for role in author.roles:
             if role.name == 'Moderator':
