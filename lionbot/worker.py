@@ -3,7 +3,7 @@ import os
 import re
 
 import discord
-from discord import NotFound, PartialEmoji, HTTPException, CustomActivity, AllowedMentions
+from discord import NotFound, PartialEmoji, HTTPException, CustomActivity, AllowedMentions, Intents
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -441,5 +441,5 @@ class LionBot(discord.Client):
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion count @role')
 
-discord_client = LionBot()
+discord_client = LionBot(intents=Intents(members=True))
 discord_client.run(os.environ.get('DISCORD_TOKEN'))
