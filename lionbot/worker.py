@@ -368,11 +368,11 @@ class LionBot(discord.Client):
                       'twitter - Sets up a twitter feed'
                 await message.channel.send(msg)
 
-        if message.content == '!lion roles':
+        elif message.content == '!lion roles':
             if self.is_moderator(message.author):
                 await self.send_role_message(message.channel)
 
-        if message.content[:11] == '!lion emoji':
+        elif message.content[:11] == '!lion emoji':
             if self.is_moderator(message.author):
                 try:
                     await self.set_stream_emoji(message)
@@ -382,32 +382,32 @@ class LionBot(discord.Client):
                     await message.channel.send('ERROR :(')
                     raise e
 
-        if message.content[:12] == '!lion delete':
+        elif message.content[:12] == '!lion delete':
             if self.is_moderator(message.author):
                 try:
                     await self.delete_stream(message)
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion delete @role')
 
-        if message.content[:15] == '!lion addcustom':
+        elif message.content[:15] == '!lion addcustom':
             if self.is_moderator(message.author):
                 try:
                     await self.create_custom_role(message)
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion addcustom @role 👍 Role Description')
 
-        if message.content[:9] == '!lion add':
+        elif message.content[:9] == '!lion add':
             if self.is_moderator(message.author):
                 try:
                     await self.create_stream(message)
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion add #channel @role 👍 Game Name')
 
-        if message.content[:13] == '!lion pinning':
+        elif message.content[:13] == '!lion pinning':
             if self.is_moderator(message.author):
                 await self.toggle_pinning(message.channel)
 
-        if message.content[:13] == '!lion twitter':
+        elif message.content[:13] == '!lion twitter':
             if self.is_moderator(message.author):
                 try:
                     await self.configure_twitter(message)
