@@ -280,10 +280,10 @@ class LionBot(discord.Client):
 
         guild = session.query(Guild).filter_by(id=message.guild.id).first()
         if guild.twitter_stream_id is not None:
+            session.delete(guild.twitter_stream)
             guild.twitter_stream_id = None
             session.add(guild)
             session.commit()
-            session.delete(guild.twitter_stream)
 
         guild.twitter_stream_id = stream.id
         session.add(guild)
