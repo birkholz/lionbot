@@ -55,6 +55,7 @@ def run_stream():
 
     for msg in stream:
         if 'data' in msg:
+            logging.info(f"Received tweet: {msg}")
             send_tweet_message(msg['data'])
 
 
@@ -76,4 +77,5 @@ def signal_handler(signal, frame):
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 start_stream()
