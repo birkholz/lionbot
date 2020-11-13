@@ -14,8 +14,8 @@ class Guild(Base):
     role_message_id = Column(BigInteger, nullable=True)
     twitch_stream_id = Column(Integer, ForeignKey('streams.id'))
     twitch_stream = relationship("Stream", foreign_keys=twitch_stream_id)
-    twitter_stream_id = Column(Integer, ForeignKey('streams.id'), nullable=True)
-    twitter_stream = relationship("Stream", foreign_keys=twitter_stream_id)
+    # twitter_stream_id = Column(Integer, ForeignKey('streams.id'), nullable=True)
+    # twitter_stream = relationship("Stream", foreign_keys=twitter_stream_id)
     streams = relationship("Stream", backref="guild", foreign_keys="Stream.guild_id")
     pinning_enabled = Column(Boolean, default=True, nullable=False)
 
