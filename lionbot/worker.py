@@ -7,7 +7,7 @@ from discord import NotFound, PartialEmoji, HTTPException
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from lionbot.data import Guild, seed_data, Stream
+from lionbot.data import Guild, Stream
 from lionbot.errors import CommandError
 from lionbot.utils import init_sentry
 
@@ -191,6 +191,8 @@ class LionBot(discord.Client):
         await self.send_role_message(channel, guild=stream.guild)
 
     def is_moderator(self, author):
+        if author.id == '140333328241786880': # My id
+            return True
         for role in author.roles:
             if role.name == 'Moderator':
                 return True
@@ -254,8 +256,35 @@ class LionBot(discord.Client):
         session.add(stream)
         session.commit()
 
+        guild = session.query(Guild).filter_by(id=message.guild.id).first()
+        channel = discord.utils.get(self.get_all_channels(), id=guild.role_channel_id)
+        await self.send_role_message(channel, guild=guild)
+
+    async def configure_twitter(self, message):
+        channel, role, emoji, title = self.parse_args(message.content, count=4, maxsplits=3)
+        channel_id = self.parse_channel(channel)
+        role_id = self.parse_role(role)
+        emoji_name, emoji_id = self.parse_emoji(emoji)
+
+        stream = Stream(
+            guild_id = message.guild.id,
+            description=title,
+            emoji=emoji_name,
+            emoji_id=emoji_id,
+            channel_id=channel_id,
+            role_id=role_id
+        )
+        session.add(stream)
+        session.commit()
 
         guild = session.query(Guild).filter_by(id=message.guild.id).first()
+        if guild.twitter_stream_id is not None:
+            session.delete(guild.twitter_stream)
+
+        guild.twitter_stream_id = stream.id
+        session.add(guild)
+        session.commit()
+
         channel = discord.utils.get(self.get_all_channels(), id=guild.role_channel_id)
         await self.send_role_message(channel, guild=guild)
 
@@ -277,7 +306,8 @@ class LionBot(discord.Client):
                       'add - Adds a new content stream\n' \
                       'emoji - Changes the emoji of a content stream\n' \
                       'delete - Deletes a content stream\n' \
-                      'pinning - Toggles auto-pinning'
+                      'pinning - Toggles auto-pinning\n' \
+                      'twitter - Sets up a twitter feed'
                 await message.channel.send(msg)
 
         if message.content == '!lion roles':
@@ -311,6 +341,13 @@ class LionBot(discord.Client):
         if message.content[:13] == '!lion pinning':
             if self.is_moderator(message.author):
                 await self.toggle_pinning(message.channel)
+
+        if message.content[:13] == '!lion twitter':
+            if self.is_moderator(message.author):
+                try:
+                    await self.configure_twitter(message)
+                except CommandError as e:
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion twitter #channel @role 👍')
 
 
 discord_client = LionBot()
