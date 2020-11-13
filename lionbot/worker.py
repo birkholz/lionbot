@@ -111,6 +111,7 @@ class LionBot(discord.Client):
 
         role = guild.get_role(stream.role_id)
         if role is not None:
+            logging.info(f"Toggling role id: {stream.role_id} for member: {payload.member.id}")
             if role in payload.member.roles:
                 await payload.member.remove_roles(role, reason="Reacted to role message.")
             else:
@@ -355,6 +356,24 @@ class LionBot(discord.Client):
         session.commit()
         await channel.send(f'Auto-pinning turned: {"ON" if new_value else "OFF" }')
 
+    async def count_role(self, message):
+        role = self.parse_args(message.content, count=1)
+        role_id = self.parse_role(role)
+
+        guild = message.channel.guild
+        stream = session.query(Stream).filter_by(guild_id=guild.id, role_id=role_id).first()
+        if not stream:
+            raise CommandError('Unknown role.')
+
+        count = 0
+        for member in guild.members:
+            for role in member.roles:
+                if role.id == role_id:
+                    count += 1
+
+        message_text = f'Users with role <@&{role_id}>: {count}'
+        await message.channel.send(message_text, allowed_mentions=AllowedMentions.none())
+
     async def on_message(self, message):
         if message.content == '!lion help':
             if self.is_moderator(message.author):
@@ -365,7 +384,8 @@ class LionBot(discord.Client):
                       'emoji - Changes the emoji of a content stream\n' \
                       'delete - Deletes a content stream\n' \
                       'pinning - Toggles auto-pinning\n' \
-                      'twitter - Sets up a twitter feed'
+                      'twitter - Sets up a twitter feed\n' \
+                      'count - Return the count of users with a role'
                 await message.channel.send(msg)
 
         elif message.content == '!lion roles':
@@ -414,6 +434,12 @@ class LionBot(discord.Client):
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion twitter #channel @role 👍 Role Description')
 
+        elif message.content[:11] == '!lion count':
+            if self.is_moderator(message.author):
+                try:
+                    await self.count_role(message)
+                except CommandError as e:
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion count @role')
 
 discord_client = LionBot()
 discord_client.run(os.environ.get('DISCORD_TOKEN'))
