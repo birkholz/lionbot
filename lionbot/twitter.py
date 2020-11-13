@@ -53,8 +53,9 @@ def run_stream():
     stream = api.request('tweets/search/stream')
     logging.info("Twitter stream started")
 
-    for tweet in stream:
-        send_tweet_message(tweet)
+    for msg in stream:
+        if 'data' in msg:
+            send_tweet_message(msg['data'])
 
 
 def start_stream(wait=2):

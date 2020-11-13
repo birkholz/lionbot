@@ -280,6 +280,9 @@ class LionBot(discord.Client):
 
         guild = session.query(Guild).filter_by(id=message.guild.id).first()
         if guild.twitter_stream_id is not None:
+            guild.twitter_stream_id = None
+            session.add(guild)
+            session.commit()
             session.delete(guild.twitter_stream)
 
         guild.twitter_stream_id = stream.id
@@ -348,7 +351,7 @@ class LionBot(discord.Client):
                 try:
                     await self.configure_twitter(message)
                 except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion twitter #channel @role 👍')
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion twitter #channel @role 👍 Role Description')
 
 
 discord_client = LionBot()
