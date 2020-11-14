@@ -408,7 +408,8 @@ class LionBot(discord.Client):
                       'delete - Deletes a content stream\n' \
                       'pinning - Toggles auto-pinning\n' \
                       'twitter - Sets up a twitter feed\n' \
-                      'count - Return the count of users with a role'
+                      'count - Return the count of users with a role\n' \
+                      'rolecounts - Returns a list with the counts of all roles'
                 await message.channel.send(msg)
 
         elif message.content == '!lion roles':
