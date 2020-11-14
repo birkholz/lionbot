@@ -5,6 +5,7 @@ from collections import defaultdict, OrderedDict
 
 import discord
 from discord import NotFound, PartialEmoji, HTTPException, CustomActivity, AllowedMentions, Intents, Embed
+from sentry_sdk import capture_exception
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -390,6 +391,13 @@ class LionBot(discord.Client):
         await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())
 
     async def on_message(self, message):
+        try:
+            await self.parse_message(message)
+        except Exception as e:
+            capture_exception(e)
+            raise e
+
+    async def parse_message(self, message):
         if message.content == '!lion help':
             if self.is_moderator(message.author):
                 msg = 'Commands:\n' \
