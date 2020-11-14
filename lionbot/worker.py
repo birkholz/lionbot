@@ -380,13 +380,13 @@ class LionBot(discord.Client):
         role_counts = defaultdict(lambda: 0)
         for member in message.channel.guild.members:
             for role in member.roles:
-                role_counts[role.id] += 1
+                role_counts[role.name] += 1
 
         ordered = OrderedDict(sorted(role_counts.items(), key=lambda r: r[1], reverse=True))
 
         embed = Embed(title="Role Counts")
-        for role_id, count in ordered.items():
-            embed.add_field(name=f'<@&{role_id}>', value=f'{count}', inline=False)
+        for role_name, count in ordered.items():
+            embed.add_field(name=role_name, value=str(count))
 
         await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())
 
