@@ -86,8 +86,15 @@ def youtube_webhook():
             scope.set_extra("body", request.get_data())
             raise ValidationException()
 
-    video = feedparser.parse(request.data).entries[0]
-    send_youtube_message(video)
+    try:
+        video = feedparser.parse(request.data).entries[0]
+        send_youtube_message(video)
+    except IndexError as e:
+        with configure_scope() as scope:
+            scope.set_extra("source", "YouTube")
+            scope.set_extra("body", request.data)
+            capture_exception(e)
+
     return '', 204
 
 
