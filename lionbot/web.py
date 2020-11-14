@@ -180,7 +180,7 @@ def twitch_webhook():
     return '', 204
 
 
-@app.route('/login', methods=['GET'])
+# @app.route('/login', methods=['GET'])
 def login():
     client_id = os.environ.get('DISCORD_CLIENT_ID')
     redirect_uri = urllib.parse.quote(f"{os.environ.get('DOMAIN')}/discord/callback")
@@ -213,7 +213,7 @@ def exchange_discord_code(code=None):
     session['discord_refresh_token'] = response['refresh_token']
 
 
-@app.route('/discord/callback', methods=['GET'])
+# @app.route('/discord/callback', methods=['GET'])
 def discord_callback():
     stored_state = session.pop('discord_state', None)
     if int(request.args.get('state')) != stored_state:
@@ -248,7 +248,7 @@ def get_guilds():
     call_discord_api('/guilds')
 
 
-@app.route('/manage', methods=['GET'])
+# @app.route('/manage', methods=['GET'])
 def guilds():
     if 'discord_access_token' not in session:
         return redirect(url_for('login'))
@@ -286,7 +286,7 @@ def guilds():
     return render_template("guilds.html", current_user=current_user, guilds=guilds_managed)
 
 
-@app.route('/manage/<int:guild_id>', methods=['GET'])
+# @app.route('/manage/<int:guild_id>', methods=['GET'])
 def manage_guild(guild_id):
     try:
         guild = call_discord_api(f'/guilds/{guild_id}', bot=True)
@@ -318,7 +318,7 @@ def manage_guild(guild_id):
     )
 
 
-@app.route('/manage/<int:guild_id>/streams', methods=['POST'])
+# @app.route('/manage/<int:guild_id>/streams', methods=['POST'])
 def update_stream(guild_id):
     if request.args.get('stream_id'):
         stream = db.session.query(Stream).filter_by(id=int(request.args['stream_id'])).first()
@@ -335,7 +335,7 @@ def update_stream(guild_id):
     return redirect(url_for('manage_guild', guild_id=guild_id))
 
 
-@app.route('/manage/<int:guild_id>/streams/<int:stream_id>/delete', methods=['GET'])
+# @app.route('/manage/<int:guild_id>/streams/<int:stream_id>/delete', methods=['GET'])
 def delete_stream(guild_id, stream_id):
     db.session.query(Stream).filter_by(id=stream_id).delete()
     db.session.commit()
