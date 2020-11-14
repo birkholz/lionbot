@@ -1,9 +1,10 @@
 import logging
 import os
 import re
+from collections import defaultdict, OrderedDict
 
 import discord
-from discord import NotFound, PartialEmoji, HTTPException, CustomActivity, AllowedMentions, Intents
+from discord import NotFound, PartialEmoji, HTTPException, CustomActivity, AllowedMentions, Intents, Embed
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -374,6 +375,20 @@ class LionBot(discord.Client):
         message_text = f'Users with role <@&{role_id}>: {count}'
         await message.channel.send(message_text, allowed_mentions=AllowedMentions.none())
 
+    async def count_roles(self, message):
+        role_counts = defaultdict(lambda: 0)
+        for member in message.channel.guild.members:
+            for role in member.roles:
+                role_counts[role.id] += 1
+
+        ordered = OrderedDict(sorted(role_counts.items(), key=lambda r: r[1], reverse=True))
+
+        embed = Embed(title="Role Counts")
+        for role_id, count in ordered.items():
+            embed.add_field(name=f'<@&{role_id}>', value=f'{count}', inline=False)
+
+        await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())
+
     async def on_message(self, message):
         if message.content == '!lion help':
             if self.is_moderator(message.author):
@@ -440,6 +455,13 @@ class LionBot(discord.Client):
                     await self.count_role(message)
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion count @role')
+
+        elif message.content == '!lion rolecounts':
+            if self.is_moderator(message.author):
+                try:
+                    await self.count_roles(message)
+                except CommandError as e:
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion rolecounts')
 
 
 intents = Intents.default()
