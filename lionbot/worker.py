@@ -408,21 +408,7 @@ class LionBot(discord.Client):
             raise e
 
     async def parse_message(self, message):
-        if message.content == '!lion help':
-            if self.is_moderator(message.author):
-                msg = 'Commands:\n' \
-                      'roles - Posts the role message in the current channel\n' \
-                      'add - Adds a new content stream\n' \
-                      'addcustom - Adds a custom role\n' \
-                      'emoji - Changes the emoji of a content stream\n' \
-                      'delete - Deletes a content stream\n' \
-                      'pinning - Toggles auto-pinning\n' \
-                      'twitter - Sets up a twitter feed\n' \
-                      'count - Return the count of users with a role\n' \
-                      'rolecounts - Returns a list with the counts of all roles'
-                await message.channel.send(msg)
-
-        elif message.content == '!lion roles':
+        if message.content == '!lion roles':
             if self.is_moderator(message.author):
                 await self.send_role_message(message.channel)
 
@@ -482,6 +468,22 @@ class LionBot(discord.Client):
         elif message.content == '!lion twitterreplies':
             if self.is_moderator(message.author):
                 await self.toggle_twitter_replies(message)
+
+        else:
+            if self.is_moderator(message.author):
+                msg = 'Commands:\n' \
+                      'roles - Posts the role message in the current channel\n' \
+                      'add - Adds a new content stream\n' \
+                      'addcustom - Adds a custom role\n' \
+                      'emoji - Changes the emoji of a content stream\n' \
+                      'delete - Deletes a content stream\n' \
+                      'pinning - Toggles auto-pinning\n' \
+                      'twitter - Sets up a twitter feed\n' \
+                      'count - Return the count of users with a role\n' \
+                      'rolecounts - Returns a list with the counts of all roles\n' \
+                      'twitterreplies - Toggles including replies in the twitter feed'
+                await message.channel.send(msg)
+
 
 
 intents = Intents.default()
