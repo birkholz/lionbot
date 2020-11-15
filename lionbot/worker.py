@@ -447,6 +447,10 @@ class LionBot(discord.Client):
             if self.is_moderator(message.author):
                 await self.toggle_pinning(message.channel)
 
+        elif message.content == '!lion twitterreplies':
+            if self.is_moderator(message.author):
+                await self.toggle_twitter_replies(message)
+
         elif message.content[:13] == '!lion twitter':
             if self.is_moderator(message.author):
                 try:
@@ -464,10 +468,6 @@ class LionBot(discord.Client):
         elif message.content == '!lion rolecounts':
             if self.is_moderator(message.author):
                 await self.count_roles(message)
-
-        elif message.content == '!lion twitterreplies':
-            if self.is_moderator(message.author):
-                await self.toggle_twitter_replies(message)
 
         elif message.content[:5] == '!lion':
             if self.is_moderator(message.author):
