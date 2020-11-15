@@ -24,6 +24,9 @@ def send_tweet_message(tweet):
         if guild.twitter_stream_id is None:
             continue
 
+        if not guild.twitter_replies and 'in_reply_to_user_id' in tweet and tweet['in_reply_to_user_id'] != '':
+            continue
+
         stream = guild.twitter_stream
         url = f"https://twitter.com/NorthernlionLP/status/{tweet['id']}"
         content = f"<@&{stream.role_id}>\n{url}"
@@ -50,7 +53,7 @@ api = TwitterAPI(
 stream = None
 
 def run_stream():
-    stream = api.request('tweets/search/stream')
+    stream = api.request('tweets/search/stream', params={'tweet.fields': 'id,text,in_reply_to_user_id'})
     logging.info("Twitter stream started")
 
     for msg in stream:

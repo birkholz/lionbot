@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, BigInteger, Index, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, BigInteger, Index, Boolean, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -17,7 +17,8 @@ class Guild(Base):
     twitter_stream_id = Column(Integer, ForeignKey('streams.id'), nullable=True)
     twitter_stream = relationship("Stream", foreign_keys=twitter_stream_id)
     streams = relationship("Stream", backref="guild", foreign_keys="Stream.guild_id")
-    pinning_enabled = Column(Boolean, default=True, nullable=False)
+    pinning_enabled = Column(Boolean, server_default=text("TRUE"), nullable=False)
+    twitter_replies = Column(Boolean, server_default=text("TRUE"), nullable=False)
 
     def __repr__(self):
         return f"<Guild {self.id} name='{self.name}'>"

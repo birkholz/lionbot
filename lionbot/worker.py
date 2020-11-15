@@ -390,6 +390,16 @@ class LionBot(discord.Client):
 
         await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())
 
+    async def toggle_twitter_replies(self, message):
+        guild_id = message.channel.guild.id
+        guild = session.query(Guild).filter_by(id=guild_id).first()
+        guild.twitter_replies = not guild.twitter_replies
+        session.add(guild)
+        session.commit()
+
+        states = {True: 'on', False: 'off'}
+        await message.channel.send(f"Turning replies: {states[guild.twitter_replies]}")
+
     async def on_message(self, message):
         try:
             await self.parse_message(message)
@@ -467,10 +477,11 @@ class LionBot(discord.Client):
 
         elif message.content == '!lion rolecounts':
             if self.is_moderator(message.author):
-                try:
-                    await self.count_roles(message)
-                except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion rolecounts')
+                await self.count_roles(message)
+
+        elif message.content == '!lion twitterreplies':
+            if self.is_moderator(message.author):
+                await self.toggle_twitter_replies(message)
 
 
 intents = Intents.default()
