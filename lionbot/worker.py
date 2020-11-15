@@ -469,7 +469,7 @@ class LionBot(discord.Client):
             if self.is_moderator(message.author):
                 await self.toggle_twitter_replies(message)
 
-        else:
+        elif message.content[:5] == '!lion':
             if self.is_moderator(message.author):
                 msg = 'Commands:\n' \
                       'roles - Posts the role message in the current channel\n' \
