@@ -24,7 +24,7 @@ def send_tweet_message(tweet):
         if guild.twitter_stream_id is None:
             continue
 
-        if not guild.twitter_replies and 'in_reply_to_user_id' in tweet and tweet['in_reply_to_user_id'] != '':
+        if not guild.twitter_replies and 'in_reply_to_user_id' in tweet and tweet['in_reply_to_user_id'] != '213161945':
             continue
 
         stream = guild.twitter_stream
