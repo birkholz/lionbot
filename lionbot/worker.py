@@ -282,6 +282,8 @@ class LionBot(discord.Client):
         channel_id = self.parse_channel(channel)
         role_id = self.parse_role(role)
         emoji_name, emoji_id = self.parse_emoji(emoji)
+        if emoji_name == '':
+            raise CommandError('Unable to read emoji. Please try again.')
         stream = Stream(
             guild_id=message.guild.id,
             description=f"New episode of {name}",
@@ -302,6 +304,8 @@ class LionBot(discord.Client):
         role, emoji, description = self.parse_args(message.content, count=3, maxsplits=2)
         role_id = self.parse_role(role)
         emoji_name, emoji_id = self.parse_emoji(emoji)
+        if emoji_name == '':
+            raise CommandError('Unable to read emoji. Please try again.')
         stream = Stream(
             guild_id=message.guild.id,
             description=description,
