@@ -155,7 +155,7 @@ class LionBot(discord.Client):
             except NotFound:
                 pass
 
-        streams = session.query(Stream).filter_by(guild_id=guild.id)
+        streams = session.query(Stream).filter_by(guild_id=guild.id).order_by(Stream.id)
         twitch_stream = None
         twitter_stream = None
         content_streams = []
