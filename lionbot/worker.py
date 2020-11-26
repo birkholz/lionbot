@@ -455,6 +455,19 @@ class LionBot(discord.Client):
 
         await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())
 
+    async def set_stream_playlist(self, message):
+        role, playlist_id = self.parse_args(message.content, count=2, maxsplits=1)
+        role_id = self.parse_role(role)
+
+        guild = message.channel.guild
+        stream = session.query(Stream).filter_by(guild_id=guild.id, role_id=role_id).first()
+        if not stream:
+            raise CommandError('Unknown role.')
+
+        stream.playlist_id = playlist_id
+        session.add(stream)
+        session.commit()
+        await message.channel.send(f"Playlist set for role <@&{role_id}>")
 
     async def toggle_twitter_replies(self, message):
         guild_id = message.channel.guild.id
@@ -534,6 +547,14 @@ class LionBot(discord.Client):
         elif message.content == '!lion rolecounts':
             if self.is_moderator(message.author):
                 await self.count_roles(message)
+
+        elif message.content[:14] == '!lion playlist':
+            if self.is_moderator(message.author):
+                try:
+                    await self.set_stream_playlist(message)
+                except CommandError as e:
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion playlist @role playlist_id_1234')
+
 
         elif message.content[:5] == '!lion':
             if self.is_moderator(message.author):

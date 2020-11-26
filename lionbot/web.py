@@ -38,7 +38,8 @@ def send_youtube_message(video):
             # Already posted, don't repost
             continue
 
-        if stream.title_contains is not None and stream.title_contains in video.title:
+        if (stream.playlist_id is not None and video_is_in_playlist(video.videoId, stream.playlist_id)) or \
+                (stream.title_contains is not None and stream.title_contains in video.title):
             content = f"<@&{stream.role_id}>\n{video.link}"
             json_body = {
                 "content": content,
@@ -72,6 +73,27 @@ def send_youtube_message(video):
             obj = Video(video_id=video.id, guild_id=stream.guild_id)
             db.session.add(obj)
             db.session.commit()
+
+
+def video_is_in_playlist(video_id, playlist_id):
+    """
+    Queries YouTube's Data API to ask if a video is in a playlist.
+    """
+    params = {
+        'key': os.environ.get('YOUTUBE_API_KEY'),
+        'playlistId': playlist_id,
+        'videoId': video_id,
+        'part': 'id',
+    }
+    param_string = urllib.parse.urlencode(params)
+    url = f'https://www.googleapis.com/youtube/v3/playlistItems?{param_string}'
+    response = requests.get(url)
+    body = response.json()
+    if 'error' in body:
+        return False
+
+    return body['pageInfo']['totalResults'] > 0
+
 
 
 @app.route('/youtube/webhook', methods=['GET', 'POST'])

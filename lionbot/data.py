@@ -38,6 +38,7 @@ class Stream(Base):
     emoji = Column(String) # The unicode emoji of the reaction on the role message
     emoji_id = Column(BigInteger, nullable=True) # For non-default emojis
     title_contains = Column(String) # The text to look for in a YouTube title to associate it with this stream
+    playlist_id = Column(String)
     # Populated from Discord's API
     role_id = Column(BigInteger)
     channel_id = Column(BigInteger)
