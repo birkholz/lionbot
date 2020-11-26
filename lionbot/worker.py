@@ -400,57 +400,57 @@ class LionBot(discord.Client):
             {
                 "name": "roles",
                 "desc": "Posts the role message in the current channel",
-                "format": "!lion roles"
+                "format": "`!lion roles`"
             },
             {
                 "name": "add",
                 "desc": "Adds a new content stream for YouTube videos",
-                "format": "!lion add #channel @role 👍 Game Name"
+                "format": "`!lion add #channel @role 👍 Game Name`"
             },
             {
                 "name": "addcustom",
                 "desc": "Adds a custom role",
-                "format": "!lion addcustom @role 👍 Role Description"
+                "format": "`!lion addcustom @role 👍 Role Description`"
             },
             {
                 "name": "emoji",
                 "desc": "Changes the emoji of a content stream/role",
-                "format": "!lion emoji @role 👍"
+                "format": "`!lion emoji @role 👍`"
             },
             {
                 "name": "delete",
                 "desc": "Deletes a content stream/role",
-                "format": "!lion delete @role"
+                "format": "`!lion delete @role`"
             },
             {
                 "name": "pinning",
                 "desc": "Toggles auto-pinning of YouTube videos",
-                "format": "!lion pinning"
+                "format": "`!lion pinning`"
             },
             {
                 "name": "twitter",
                 "desc": "Sets up a twitter feed",
-                "format": "!lion twitter #channel @role 👍 Role Description"
+                "format": "`!lion twitter #channel @role 👍 Role Description`"
             },
             {
                 "name": "count",
                 "desc": "Returns the count of users with a role",
-                "format": "!lion count @role"
+                "format": "`!lion count @role`"
             },
             {
                 "name": "rolecounts",
                 "desc": "Returns a list with the number of members that have each role",
-                "format": "!lion rolecounts"
+                "format": "`!lion rolecounts`"
             },
             {
                 "name": "twitterreplies",
                 "desc": "Toggles including replies in the twitter feed",
-                "format": "!lion twitterreplies"
+                "format": "`!lion twitterreplies`"
             }
         ]
 
         for command in commands:
-            value = f"{command['desc']}\nFormat: {command['format']}"
+            value = f"{command['desc']}\nFormat: {command['format'].replace(' ', ' ')}" # replace space with nb-space
             embed.add_field(name=command["name"], value=value)
 
         await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())
