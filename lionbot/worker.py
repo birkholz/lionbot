@@ -450,7 +450,7 @@ class LionBot(discord.Client):
         ]
 
         for command in commands:
-            value = f"{command['desc']}\nFormat: {command['format'].replace(' ', ' ')}" # replace space with nb-space
+            value = f"{command['desc']}\nFormat: {command['format'].replace(' ', ' ')}" # replace space with nb-space
             embed.add_field(name=command["name"], value=value)
 
         await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())
