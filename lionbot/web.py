@@ -95,7 +95,6 @@ def video_is_in_playlist(video_id, playlist_id):
     return body['pageInfo']['totalResults'] > 0
 
 
-
 @app.route('/youtube/webhook', methods=['GET', 'POST'])
 def youtube_webhook():
     if request.method == 'GET':

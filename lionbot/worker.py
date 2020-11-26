@@ -555,7 +555,6 @@ class LionBot(discord.Client):
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion playlist @role playlist_id_1234')
 
-
         elif message.content[:5] == '!lion':
             if self.is_moderator(message.author):
                 await self.help_message(message)
