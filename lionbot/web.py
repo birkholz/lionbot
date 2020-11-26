@@ -1,4 +1,5 @@
 import hmac
+import logging
 import os
 import random
 import urllib.parse
@@ -16,6 +17,8 @@ from lionbot.data import Stream, Guild, Video, TwitchStream
 from lionbot.errors import DiscordError, ValidationException
 from lionbot.forms import StreamForm
 from lionbot.utils import init_sentry, int_ids, send_discord_request
+
+logging.basicConfig(level=logging.INFO)
 
 init_sentry([FlaskIntegration()])
 
@@ -87,6 +90,7 @@ def youtube_webhook():
             raise ValidationException()
 
     try:
+        logging.info(f"Received YouTube webhook: {request.data}")
         video = feedparser.parse(request.data).entries[0]
         send_youtube_message(video)
     except IndexError as e:
@@ -172,6 +176,8 @@ def twitch_webhook():
             scope.set_extra("sha", request.headers['X-Hub-Signature'])
             scope.set_extra("body", request.get_data())
             raise ValidationException()
+
+    logging.info(f"Received Twitch webhook: {request.data}")
     json_body = request.get_json()
     if json_body['data']:
         event = json_body['data'][0]
