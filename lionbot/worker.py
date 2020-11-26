@@ -415,7 +415,7 @@ class LionBot(discord.Client):
             {
                 "name": "playlist",
                 "desc": "Sets the playlist for a content stream",
-                "format": "!lion playlist @role playlist_id_1234"
+                "format": "`!lion playlist @role playlist_id_1234`"
             },
             {
                 "name": "roles",
