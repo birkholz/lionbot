@@ -209,15 +209,15 @@ class LionBot(discord.Client):
         session.commit()
 
     async def set_stream_emoji(self, message):
-        channel, emoji = self.parse_args(message.content, count=2)
-        channel_id = re.match('<#(\d+)>', channel).groups()[0]
+        role, emoji = self.parse_args(message.content, count=2)
+        role_id = self.parse_role(role)
         emoji_match = re.match('<:(\w+):(\d+)>', emoji)
         if emoji_match:
             emoji_name, emoji_id = emoji_match.groups()
         else:
             emoji_name = emoji
             emoji_id = None
-        stream = session.query(Stream).filter_by(channel_id=channel_id).first()
+        stream = session.query(Stream).filter_by(role_id=role_id).first()
         if not stream:
             raise CommandError('Invalid channel.')
         stream.emoji = emoji_name
@@ -394,6 +394,68 @@ class LionBot(discord.Client):
 
         await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())
 
+    async def help_message(self, message):
+        embed = Embed(title="LionBot Commands")
+        commands = [
+            {
+                "name": "roles",
+                "desc": "Posts the role message in the current channel",
+                "format": "!lion roles"
+            },
+            {
+                "name": "add",
+                "desc": "Adds a new content stream for YouTube videos",
+                "format": "!lion add #channel @role 👍 Game Name"
+            },
+            {
+                "name": "addcustom",
+                "desc": "Adds a custom role",
+                "format": "!lion addcustom @role 👍 Role Description"
+            },
+            {
+                "name": "emoji",
+                "desc": "Changes the emoji of a content stream/role",
+                "format": "!lion emoji @role 👍"
+            },
+            {
+                "name": "delete",
+                "desc": "Deletes a content stream/role",
+                "format": "!lion delete @role"
+            },
+            {
+                "name": "pinning",
+                "desc": "Toggles auto-pinning of YouTube videos",
+                "format": "!lion pinning"
+            },
+            {
+                "name": "twitter",
+                "desc": "Sets up a twitter feed",
+                "format": "!lion twitter #channel @role 👍 Role Description"
+            },
+            {
+                "name": "count",
+                "desc": "Returns the count of users with a role",
+                "format": "!lion count @role"
+            },
+            {
+                "name": "rolecounts",
+                "desc": "Returns a list with the number of members that have each role",
+                "format": "!lion rolecounts"
+            },
+            {
+                "name": "twitterreplies",
+                "desc": "Toggles including replies in the twitter feed",
+                "format": "!lion twitterreplies"
+            }
+        ]
+
+        for command in commands:
+            value = f"{command['desc']}\nFormat: {command['format']}"
+            embed.add_field(name=command["name"], value=value)
+
+        await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())
+
+
     async def toggle_twitter_replies(self, message):
         guild_id = message.channel.guild.id
         guild = session.query(Guild).filter_by(id=guild_id).first()
@@ -421,7 +483,7 @@ class LionBot(discord.Client):
                 try:
                     await self.set_stream_emoji(message)
                 except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion emoji #channel 👍')
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion emoji @role 👍')
                 except HTTPException as e:
                     await message.channel.send('ERROR :(')
                     raise e
@@ -475,18 +537,7 @@ class LionBot(discord.Client):
 
         elif message.content[:5] == '!lion':
             if self.is_moderator(message.author):
-                msg = 'Commands:\n' \
-                      'roles - Posts the role message in the current channel\n' \
-                      'add - Adds a new content stream\n' \
-                      'addcustom - Adds a custom role\n' \
-                      'emoji - Changes the emoji of a content stream\n' \
-                      'delete - Deletes a content stream\n' \
-                      'pinning - Toggles auto-pinning\n' \
-                      'twitter - Sets up a twitter feed\n' \
-                      'count - Return the count of users with a role\n' \
-                      'rolecounts - Returns a list with the counts of all roles\n' \
-                      'twitterreplies - Toggles including replies in the twitter feed'
-                await message.channel.send(msg)
+                await self.help_message(message)
 
 
 
