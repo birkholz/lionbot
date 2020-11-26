@@ -398,11 +398,6 @@ class LionBot(discord.Client):
         embed = Embed(title="LionBot Commands")
         commands = [
             {
-                "name": "roles",
-                "desc": "Posts the role message in the current channel",
-                "format": "`!lion roles`"
-            },
-            {
                 "name": "add",
                 "desc": "Adds a new content stream for YouTube videos",
                 "format": "`!lion add #channel @role 👍 Game Name`"
@@ -413,9 +408,19 @@ class LionBot(discord.Client):
                 "format": "`!lion addcustom @role 👍 Role Description`"
             },
             {
-                "name": "emoji",
-                "desc": "Changes the emoji of a content stream/role",
-                "format": "`!lion emoji @role 👍`"
+                "name": "twitter",
+                "desc": "Sets up a twitter feed",
+                "format": "`!lion twitter #channel @role 👍 Role Description`"
+            },
+            {
+                "name": "playlist",
+                "desc": "Sets the playlist for a content stream",
+                "format": "!lion playlist @role playlist_id_1234"
+            },
+            {
+                "name": "roles",
+                "desc": "Posts the role message in the current channel",
+                "format": "`!lion roles`"
             },
             {
                 "name": "delete",
@@ -423,14 +428,19 @@ class LionBot(discord.Client):
                 "format": "`!lion delete @role`"
             },
             {
+                "name": "emoji",
+                "desc": "Changes the emoji of a content stream/role",
+                "format": "`!lion emoji @role 👍`"
+            },
+            {
                 "name": "pinning",
                 "desc": "Toggles auto-pinning of YouTube videos",
                 "format": "`!lion pinning`"
             },
             {
-                "name": "twitter",
-                "desc": "Sets up a twitter feed",
-                "format": "`!lion twitter #channel @role 👍 Role Description`"
+                "name": "twitterreplies",
+                "desc": "Toggles including replies in the twitter feed",
+                "format": "`!lion twitterreplies`"
             },
             {
                 "name": "count",
@@ -442,11 +452,6 @@ class LionBot(discord.Client):
                 "desc": "Returns a list with the number of members that have each role",
                 "format": "`!lion rolecounts`"
             },
-            {
-                "name": "twitterreplies",
-                "desc": "Toggles including replies in the twitter feed",
-                "format": "`!lion twitterreplies`"
-            }
         ]
 
         for command in commands:
