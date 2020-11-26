@@ -26,6 +26,64 @@ init_sentry()
 
 
 class LionBot(discord.Client):
+    COMMANDS = OrderedDict([
+        ("add", {
+            "name": "add",
+            "desc": "Adds a new content stream for YouTube videos",
+            "format": "`!lion add #channel @role 👍 Game Name`"
+        }),
+        ("addcustom", {
+            "name": "addcustom",
+            "desc": "Adds a custom role",
+            "format": "`!lion addcustom @role 👍 Role Description`"
+        }),
+        ("twitter", {
+            "name": "twitter",
+            "desc": "Sets up a twitter feed",
+            "format": "`!lion twitter #channel @role 👍 Role Description`"
+        }),
+        ("playlist", {
+            "name": "playlist",
+            "desc": "Sets the playlist for a content stream",
+            "format": "`!lion playlist @role playlist_id_1234`"
+        }),
+        ("roles", {
+            "name": "roles",
+            "desc": "Posts the role message in the current channel",
+            "format": "`!lion roles`"
+        }),
+        ("delete", {
+            "name": "delete",
+            "desc": "Deletes a content stream/role",
+            "format": "`!lion delete @role`"
+        }),
+        ("emoji", {
+            "name": "emoji",
+            "desc": "Changes the emoji of a content stream/role",
+            "format": "`!lion emoji @role 👍`"
+        }),
+        ("pinning", {
+            "name": "pinning",
+            "desc": "Toggles auto-pinning of YouTube videos",
+            "format": "`!lion pinning`"
+        }),
+        ("twitterreplies", {
+            "name": "twitterreplies",
+            "desc": "Toggles including replies in the twitter feed",
+            "format": "`!lion twitterreplies`"
+        }),
+        ("count", {
+            "name": "count",
+            "desc": "Returns the count of users with a role",
+            "format": "`!lion count @role`"
+        }),
+        ("role_counts", {
+            "name": "rolecounts",
+            "desc": "Returns a list with the number of members that have each role",
+            "format": "`!lion rolecounts`"
+        }),
+    ])
+
     async def on_ready(self):
         state = "See #roles for info"
         await discord_client.change_presence(activity=CustomActivity('Custom Status', state=state))
@@ -396,69 +454,18 @@ class LionBot(discord.Client):
 
     async def help_message(self, message):
         embed = Embed(title="LionBot Commands")
-        commands = [
-            {
-                "name": "add",
-                "desc": "Adds a new content stream for YouTube videos",
-                "format": "`!lion add #channel @role 👍 Game Name`"
-            },
-            {
-                "name": "addcustom",
-                "desc": "Adds a custom role",
-                "format": "`!lion addcustom @role 👍 Role Description`"
-            },
-            {
-                "name": "twitter",
-                "desc": "Sets up a twitter feed",
-                "format": "`!lion twitter #channel @role 👍 Role Description`"
-            },
-            {
-                "name": "playlist",
-                "desc": "Sets the playlist for a content stream",
-                "format": "`!lion playlist @role playlist_id_1234`"
-            },
-            {
-                "name": "roles",
-                "desc": "Posts the role message in the current channel",
-                "format": "`!lion roles`"
-            },
-            {
-                "name": "delete",
-                "desc": "Deletes a content stream/role",
-                "format": "`!lion delete @role`"
-            },
-            {
-                "name": "emoji",
-                "desc": "Changes the emoji of a content stream/role",
-                "format": "`!lion emoji @role 👍`"
-            },
-            {
-                "name": "pinning",
-                "desc": "Toggles auto-pinning of YouTube videos",
-                "format": "`!lion pinning`"
-            },
-            {
-                "name": "twitterreplies",
-                "desc": "Toggles including replies in the twitter feed",
-                "format": "`!lion twitterreplies`"
-            },
-            {
-                "name": "count",
-                "desc": "Returns the count of users with a role",
-                "format": "`!lion count @role`"
-            },
-            {
-                "name": "rolecounts",
-                "desc": "Returns a list with the number of members that have each role",
-                "format": "`!lion rolecounts`"
-            },
-        ]
 
-        for command in commands:
+        for command in self.COMMANDS.values():
             value = f"{command['desc']}\nFormat: {command['format'].replace(' ', ' ')}" # replace space with nb-space
             embed.add_field(name=command["name"], value=value)
 
         await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())
+
+    def command_help_embed(self, name):
+        command = self.COMMANDS[name]
+        desc = f"{command['desc']}\nFormat: {command['format'].replace(' ', ' ')}"  # replace space with nb-space
+        embed = Embed(title=name, description=desc)
+        return embed
 
     async def set_stream_playlist(self, message):
         role, playlist_id = self.parse_args(message.content, count=2, maxsplits=1)
@@ -501,31 +508,28 @@ class LionBot(discord.Client):
                 try:
                     await self.set_stream_emoji(message)
                 except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion emoji @role 👍')
-                except HTTPException as e:
-                    await message.channel.send('ERROR :(')
-                    raise e
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: `!lion emoji @role 👍`')
 
         elif message.content[:12] == '!lion delete':
             if self.is_moderator(message.author):
                 try:
                     await self.delete_stream(message)
                 except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion delete @role')
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: `!lion delete @role`')
 
         elif message.content[:15] == '!lion addcustom':
             if self.is_moderator(message.author):
                 try:
                     await self.create_custom_role(message)
                 except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion addcustom @role 👍 Role Description')
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: `!lion addcustom @role 👍 Role Description`')
 
         elif message.content[:9] == '!lion add':
             if self.is_moderator(message.author):
                 try:
                     await self.create_stream(message)
                 except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion add #channel @role 👍 Game Name')
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: `!lion add #channel @role 👍 Game Name`')
 
         elif message.content[:13] == '!lion pinning':
             if self.is_moderator(message.author):
@@ -540,14 +544,14 @@ class LionBot(discord.Client):
                 try:
                     await self.configure_twitter(message)
                 except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion twitter #channel @role 👍 Role Description')
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: `!lion twitter #channel @role 👍 Role Description`')
 
         elif message.content[:11] == '!lion count':
             if self.is_moderator(message.author):
                 try:
                     await self.count_role(message)
                 except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion count @role')
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: `!lion count @role`')
 
         elif message.content == '!lion rolecounts':
             if self.is_moderator(message.author):
@@ -558,7 +562,7 @@ class LionBot(discord.Client):
                 try:
                     await self.set_stream_playlist(message)
                 except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: !lion playlist @role playlist_id_1234')
+                    await message.channel.send(f'ERROR: {e.msg}\nFormat: `!lion playlist @role playlist_id_1234`')
 
         elif message.content[:5] == '!lion':
             if self.is_moderator(message.author):
