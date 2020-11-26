@@ -38,7 +38,7 @@ def send_youtube_message(video):
             # Already posted, don't repost
             continue
 
-        if (stream.playlist_id is not None and video_is_in_playlist(video.videoId, stream.playlist_id)) or \
+        if (stream.playlist_id is not None and video_is_in_playlist(video.video_id, stream.playlist_id)) or \
                 (stream.title_contains is not None and stream.title_contains in video.title):
             content = f"<@&{stream.role_id}>\n{video.link}"
             json_body = {
