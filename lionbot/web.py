@@ -37,6 +37,8 @@ def send_youtube_message(video):
         if (stream.playlist_id is not None and video_is_in_playlist(video.yt_videoid, stream.playlist_id)) or \
                 (stream.title_contains is not None and stream.title_contains in video.title):
             content = f"<@&{stream.role_id}>\n{video.link}"
+            if stream.guild.playlist_links and stream.playlist_id is not None:
+                content += f'&list={stream.playlist_id}'
             json_body = {
                 "content": content,
                 "allowed_mentions": {

@@ -68,6 +68,11 @@ class LionBot(discord.Client):
             "desc": "Toggles including replies in the twitter feed",
             "format": "`!lion twitterreplies`"
         }),
+        ("playlistlinks", {
+           "name": "playlistlinks",
+            "desc": "Toggles posting video links with their playlist",
+            "format": "`!lion playlistlinks"
+        }),
         ("count", {
             "name": "count",
             "desc": "Returns the count of users with a role",
@@ -487,6 +492,16 @@ class LionBot(discord.Client):
         states = {True: 'on', False: 'off'}
         await message.channel.send(f"Turning replies: {states[guild.twitter_replies]}")
 
+    async def toggle_playlist_links(self, message):
+        guild_id = message.channel.guild.id
+        guild = session.query(Guild).filter_by(id=guild_id).first()
+        guild.playlist_links = not guild.playlist_links
+        session.add(guild)
+        session.commit()
+
+        states = {True: 'on', False: 'off'}
+        await message.channel.send(f"Turning playlist links: {states[guild.playlist_links]}")
+
     async def on_message(self, message):
         try:
             await self.parse_message(message)
@@ -552,6 +567,10 @@ class LionBot(discord.Client):
         elif message.content == '!lion rolecounts':
             if self.is_moderator(message.author):
                 await self.count_roles(message)
+
+        elif message.content == '!lion playlistlinks':
+            if self.is_moderator(message.author):
+                await self.toggle_playlist_links(message)
 
         elif message.content[:14] == '!lion playlist':
             if self.is_moderator(message.author):
