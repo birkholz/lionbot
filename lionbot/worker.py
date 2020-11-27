@@ -224,7 +224,7 @@ class LionBot(discord.Client):
                 twitch_stream = stream
             elif stream.id == guild.twitter_stream_id:
                 twitter_stream = stream
-            elif stream.title_contains is None:
+            elif stream.title_contains is None and stream.playlist_id is None:
                 custom_roles.append(stream)
             else:
                 content_streams.append(stream)
