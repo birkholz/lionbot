@@ -78,11 +78,16 @@ class LionBot(discord.Client):
             "desc": "Returns the count of users with a role",
             "format": "`!lion count @role`"
         }),
-        ("role_counts", {
+        ("rolecounts", {
             "name": "rolecounts",
             "desc": "Returns a list with the number of members that have each role",
             "format": "`!lion rolecounts`"
         }),
+        ("reloadroles", {
+            "name": "reloadroles",
+            "desc": "Reloads the roles message in case something went wrong",
+            "format": "`!lion reloadroles`"
+        })
     ])
 
     async def on_ready(self):
@@ -255,6 +260,11 @@ class LionBot(discord.Client):
 
         role_message = await channel.send(message_text, allowed_mentions=AllowedMentions.none())
 
+        # Commit channel and message to DB before adding reactions, as that's usually when errors occur
+        guild.role_channel_id = channel.id
+        guild.role_message_id = role_message.id
+        session.commit()
+
         # Add Reactions
         for stream in streams:
             if stream.emoji_id:
@@ -263,9 +273,10 @@ class LionBot(discord.Client):
                 emoji = stream.emoji
             await role_message.add_reaction(emoji)
 
-        guild.role_channel_id = channel.id
-        guild.role_message_id = role_message.id
-        session.commit()
+    async def reload_roles(self, message):
+        guild = session.query(Guild).filter_by(id=message.guild.id).first()
+        channel = discord.utils.get(self.get_all_channels(), id=guild.role_channel_id)
+        await self.send_role_message(channel, guild=guild)
 
     async def set_stream_emoji(self, message):
         role, emoji = self.parse_args(message.content, count=2)
@@ -306,6 +317,20 @@ class LionBot(discord.Client):
             raise CommandError('Too many arguments.')
         return args
 
+    def parse_emoji(self, tag):
+        name = tag
+        e_id = None
+        match = re.match('<:(\w+):(\d+)>', tag)
+        if match:
+            name, e_id = match.groups()
+        return name, e_id
+
+    def parse_channel(self, tag):
+        return re.match('<#(\d+)>', tag).groups()[0]
+
+    def parse_role(self, tag):
+        return re.match('<@&(\d+)>', tag).groups()[0]
+
     async def delete_stream(self, message):
         args = self.parse_args(message.content)
         role_id = self.parse_role(args[0])
@@ -321,20 +346,6 @@ class LionBot(discord.Client):
 
         channel = discord.utils.get(self.get_all_channels(), id=role_channel_id)
         await self.send_role_message(channel, guild=guild)
-
-    def parse_emoji(self, tag):
-        name = tag
-        e_id = None
-        match = re.match('<:(\w+):(\d+)>', tag)
-        if match:
-            name, e_id = match.groups()
-        return name, e_id
-
-    def parse_channel(self, tag):
-        return re.match('<#(\d+)>', tag).groups()[0]
-
-    def parse_role(self, tag):
-        return re.match('<@&(\d+)>', tag).groups()[0]
 
     async def create_stream(self, message):
         channel, role, emoji, name = self.parse_args(message.content, count=4, maxsplits=3)
@@ -579,6 +590,10 @@ class LionBot(discord.Client):
                     await self.set_stream_playlist(message)
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: `!lion playlist @role playlist_id_1234`')
+
+        elif message.content == '!lion reloadroles':
+            if self.is_moderator(message.author):
+                await self.reload_roles(message)
 
         elif message.content[:5] == '!lion':
             if self.is_moderator(message.author):
