@@ -478,6 +478,7 @@ class LionBot(discord.Client):
             raise CommandError('Unknown role.')
 
         stream.playlist_id = playlist_id
+        stream.title_contains = None
         session.add(stream)
         session.commit()
         await message.channel.send(f"Playlist set for role <@&{role_id}>")
