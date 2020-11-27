@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "11685b6eaec6d6eb229bdd46e0927a1f683a34201571ab5c70312978ca5e0527"
+            "sha256": "f96d728b98dc47d5e179a2daa79811c35ad1224e722f473546168b49483b9466"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -134,14 +134,6 @@
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.10"
-        },
-        "install": {
-            "hashes": [
-                "sha256:1455304a2475b6753a9b0c28243ca7d8b7d71aeea1a88e6de94034fc57d765a0",
-                "sha256:dfec614e0cc90f00659067a078bc2ec032d9f0758f3df230c073eeaffd0cefa1"
-            ],
-            "index": "pypi",
-            "version": "==1.3.4"
         },
         "itsdangerous": {
             "hashes": [
@@ -383,14 +375,6 @@
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
             "version": "==1.0.1"
-        },
-        "wtforms": {
-            "hashes": [
-                "sha256:7b504fc724d0d1d4d5d5c114e778ec88c37ea53144683e084215eed5155ada4c",
-                "sha256:81195de0ac94fbc8368abbaf9197b88c4f3ffd6c2719b5bf5fc9da744f3d829c"
-            ],
-            "index": "pypi",
-            "version": "==2.3.3"
         },
         "yarl": {
             "hashes": [

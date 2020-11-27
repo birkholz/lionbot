@@ -4,7 +4,7 @@ import re
 from collections import defaultdict, OrderedDict
 
 import discord
-from discord import NotFound, PartialEmoji, HTTPException, CustomActivity, AllowedMentions, Intents, Embed
+from discord import NotFound, PartialEmoji, CustomActivity, AllowedMentions, Intents, Embed
 from sentry_sdk import capture_exception
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -19,10 +19,6 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 init_sentry()
-
-
-# TODO: Make this configurable without changing code
-# Ideally NL would put his YT vids in separate playlists, then we wouldn't have to check the vid names.
 
 
 class LionBot(discord.Client):
@@ -531,7 +527,7 @@ class LionBot(discord.Client):
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: `!lion add #channel @role 👍 Game Name`')
 
-        elif message.content[:13] == '!lion pinning':
+        elif message.content == '!lion pinning':
             if self.is_moderator(message.author):
                 await self.toggle_pinning(message.channel)
 
