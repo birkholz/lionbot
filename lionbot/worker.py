@@ -71,7 +71,7 @@ class LionBot(discord.Client):
         ("playlistlinks", {
            "name": "playlistlinks",
             "desc": "Toggles posting video links with their playlist",
-            "format": "`!lion playlistlinks"
+            "format": "`!lion playlistlinks`"
         }),
         ("count", {
             "name": "count",
