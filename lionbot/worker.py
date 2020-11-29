@@ -87,6 +87,11 @@ class LionBot(discord.Client):
             "name": "reloadroles",
             "desc": "Reloads the roles message in case something went wrong",
             "format": "`!lion reloadroles`"
+        }),
+        ("countroleusers", {
+            "name": "countroleusers",
+            "desc": "Counts the number of users with any bot-assigned role",
+            "format": "`!lion countroleusers"
         })
     ])
 
@@ -464,6 +469,27 @@ class LionBot(discord.Client):
 
         await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())
 
+    async def count_role_users(self, message):
+        role_ids_iter = session.query(Stream).filter_by(guild_id=message.channel.guild.id).values(Stream.role_id)
+        # Convert query iterator to dict for fast lookups
+        role_ids = {}
+        for role_id in role_ids_iter:
+            role_ids[role_id] = None
+
+        user_count = 0
+
+        def member_has_a_role(member):
+            for role in member.roles:
+                if role.id in role_ids:
+                    return True
+            return False
+
+        for member in message.channel.guild.members:
+            if member_has_a_role(member):
+                user_count += 1
+
+        await message.channel.send(f"Users with bot-assigned roles: **{user_count}**")
+
     async def help_message(self, message):
         embed = Embed(title="LionBot Commands")
 
@@ -594,6 +620,10 @@ class LionBot(discord.Client):
         elif message.content == '!lion reloadroles':
             if self.is_moderator(message.author):
                 await self.reload_roles(message)
+
+        elif message.content == '!lion countroleusers':
+            if self.is_moderator(message.author):
+                await self.count_role_users(message)
 
         elif message.content[:5] == '!lion':
             if self.is_moderator(message.author):
