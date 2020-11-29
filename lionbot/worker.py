@@ -472,9 +472,7 @@ class LionBot(discord.Client):
     async def count_role_users(self, message):
         role_ids_iter = session.query(Stream).filter_by(guild_id=message.channel.guild.id).values(Stream.role_id)
         # Convert query iterator to dict for fast lookups
-        role_ids = {}
-        for role_id in role_ids_iter:
-            role_ids[role_id] = None
+        role_ids = dict([(i[0], None) for i in role_ids_iter])
 
         user_count = 0
 
