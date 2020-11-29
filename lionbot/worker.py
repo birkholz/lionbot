@@ -91,7 +91,7 @@ class LionBot(discord.Client):
         ("countroleusers", {
             "name": "countroleusers",
             "desc": "Counts the number of users with any bot-assigned role",
-            "format": "`!lion countroleusers"
+            "format": "`!lion countroleusers`"
         })
     ])
 
@@ -595,6 +595,10 @@ class LionBot(discord.Client):
                 except CommandError as e:
                     await message.channel.send(f'ERROR: {e.msg}\nFormat: `!lion twitter #channel @role 👍 Role Description`')
 
+        elif message.content == '!lion countroleusers':
+            if self.is_moderator(message.author):
+                await self.count_role_users(message)
+
         elif message.content[:11] == '!lion count':
             if self.is_moderator(message.author):
                 try:
@@ -620,10 +624,6 @@ class LionBot(discord.Client):
         elif message.content == '!lion reloadroles':
             if self.is_moderator(message.author):
                 await self.reload_roles(message)
-
-        elif message.content == '!lion countroleusers':
-            if self.is_moderator(message.author):
-                await self.count_role_users(message)
 
         elif message.content[:5] == '!lion':
             if self.is_moderator(message.author):
