@@ -7,6 +7,7 @@ import feedparser
 import requests
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
+from psycopg2._psycopg import IntegrityError
 from sentry_sdk import configure_scope, capture_exception
 from sentry_sdk.integrations.flask import FlaskIntegration
 
@@ -70,7 +71,13 @@ def send_youtube_message(video):
 
             obj = Video(video_id=video.id, guild_id=stream.guild_id)
             db.session.add(obj)
-            db.session.commit()
+
+            try:
+                db.session.commit()
+            except IntegrityError as e:
+                # Duplicate race condition
+                capture_exception(e)
+                continue
 
 
 def video_is_in_playlist(video_id, playlist_id):
