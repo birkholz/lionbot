@@ -60,6 +60,7 @@ def send_youtube_message(video):
             channel_id = stream.channel_id
             try:
                 response = send_discord_request('post', f"channels/{channel_id}/messages", json_body)
+                logging.info(f"Successfully posted video id:{video.yt_videoid} to channel: {channel_id}")
             except DiscordError as e:
                 capture_exception(e)
                 continue
@@ -75,6 +76,7 @@ def send_youtube_message(video):
 
                     stream.latest_message_id = message_id
                     db.session.add(stream)
+                    db.session.commit()
             except DiscordError as e:
                 capture_exception(e)
                 continue
