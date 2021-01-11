@@ -35,18 +35,19 @@ def send_youtube_message(video):
             # Already posted, don't repost
             continue
 
-        obj = Video(video_id=video.id, guild_id=stream.guild_id)
-        db.session.add(obj)
-
-        try:
-            db.session.commit()
-        except IntegrityError as e:
-            # Duplicate race condition
-            capture_exception(e)
-            continue
-
         if (stream.playlist_id is not None and video_is_in_playlist(video.yt_videoid, stream.playlist_id)) or \
                 (stream.title_contains is not None and stream.title_contains in video.title):
+
+            obj = Video(video_id=video.id, guild_id=stream.guild_id)
+            db.session.add(obj)
+
+            try:
+                db.session.commit()
+            except IntegrityError as e:
+                # Duplicate race condition
+                capture_exception(e)
+                continue
+
             content = f"<@&{stream.role_id}>\n{video.link}"
             if stream.guild.playlist_links and stream.playlist_id is not None:
                 content += f'&list={stream.playlist_id}'
@@ -80,7 +81,6 @@ def send_youtube_message(video):
             except DiscordError as e:
                 capture_exception(e)
                 continue
-
 
 
 def video_is_in_playlist(video_id, playlist_id):
