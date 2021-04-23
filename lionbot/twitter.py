@@ -28,7 +28,7 @@ def send_tweet_message(tweet):
             continue
 
         stream = guild.twitter_stream
-        url = f"https://twitter.com/NorthernlionLP/status/{tweet['id']}"
+        url = f"https://twitter.com/Northernlion/status/{tweet['id']}"
         content = f"<@&{stream.role_id}>\n{url}"
         json_body = {
             "content": content,
