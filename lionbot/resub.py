@@ -49,7 +49,7 @@ def subscribe_to_twitch():
     if token is None:
         return
 
-    url = 'https://api.twitch.tv/helix/eventhub/subscriptions'
+    url = 'https://api.twitch.tv/helix/eventsub/subscriptions'
     headers = {
         'Client-Id': os.environ.get('TWITCH_CLIENT_ID'),
         'Authorization': f'Bearer {token}',
