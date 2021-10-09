@@ -49,17 +49,22 @@ def subscribe_to_twitch():
     if token is None:
         return
 
-    url = 'https://api.twitch.tv/helix/webhooks/hub'
+    url = 'https://api.twitch.tv/helix/eventhub/subscriptions'
     headers = {
         'Client-Id': os.environ.get('TWITCH_CLIENT_ID'),
         'Authorization': f'Bearer {token}',
     }
     json_body = {
-        "hub.callback": f"{os.environ.get('DOMAIN')}/twitch/webhook",
-        "hub.mode": "subscribe",
-        "hub.topic": "https://api.twitch.tv/helix/streams?user_id=14371185",
-        "hub.lease_seconds": 864000,
-        "hub.secret": os.environ.get("WEBHOOK_SECRET"),
+        "type": "stream.online",
+        "version": "1",
+        "condition": {
+            "broadcaster_user_id": "14371185"
+        },
+        "transport": {
+            "method": "webhook",
+            "callback": f"{os.environ.get('DOMAIN')}/twitch/webhook",
+            "secret": os.environ.get("WEBHOOK_SECRET")
+        }
     }
     response = requests.post(url, headers=headers, json=json_body)
     if not status_successful(response.status_code):
@@ -71,5 +76,5 @@ def subscribe_to_twitch():
 
 
 if __name__ == "__main__":
-    subscribe_to_twitch()
+    # subscribe_to_twitch()
     subscribe_to_youtube()

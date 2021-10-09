@@ -140,17 +140,9 @@ def send_twitch_message(event):
 
         stream = guild.twitch_stream
         link = 'https://www.twitch.tv/northernlion'
-        content = f"<@&{stream.role_id}>\nNorthernlion just went live on Twitch!"
-        thumbnail_url = event['thumbnail_url'].format(width=960, height=540)
+        content = f"<@&{stream.role_id}>\nNorthernlion just went live on Twitch!\n{link}"
         json_body = {
             "content": content,
-            "embed": {
-                "title": event['title'],
-                "url": link,
-                "image": {
-                    "url": f"{thumbnail_url}?c={event['id']}", # add query param to bust Discord's cache
-                },
-            },
             "allowed_mentions": {
                 "parse": ["roles"]
             }
@@ -182,7 +174,7 @@ def send_twitch_message(event):
 
 
 def check_signature(request):
-    signed = request.headers.get('X-Hub-Signature')
+    signed = request.headers.get('Twitch-Eventsub-Message-Signature')
     if signed:
         alg, signature = signed.split('=')
         hash = hmac.new(os.environb.get(b"WEBHOOK_SECRET"), msg=request.get_data(), digestmod=alg).hexdigest()
@@ -208,8 +200,11 @@ def twitch_webhook():
 
     logging.info(f"Received Twitch webhook: {request.data}")
     json_body = request.get_json()
-    if json_body['data']:
-        event = json_body['data'][0]
+    if json_body['challenge']:
+        return json_body['challenge'], 200
+
+    if json_body['event']:
+        event = json_body['event']
         if event['type'] == 'live':
             send_twitch_message(event)
     return '', 204
