@@ -178,7 +178,7 @@ def check_signature(request):
     if signed:
         msgid = request.headers.get('Twitch-Eventsub-Message-Id')
         timestamp = request.headers.get('Twitch-Eventsub-Message-Timestamp')
-        msg = msgid + timestamp + request.get_data(as_text=True)
+        msg = msgid.encode('utf-8') + timestamp.encode('utf-8') + request.get_data()
         alg, signature = signed.split('=')
         hash = hmac.new(os.environb.get(b"WEBHOOK_SECRET"), msg=msg, digestmod=alg).hexdigest()
         return hash == signature
