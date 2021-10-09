@@ -194,7 +194,7 @@ def twitch_webhook():
     if not check_signature(request):
         with configure_scope() as scope:
             scope.set_extra("source", "Twitch")
-            scope.set_extra("sha", request.headers['X-Hub-Signature'])
+            scope.set_extra("sha", request.headers['Twitch-Eventsub-Message-Signature'])
             scope.set_extra("body", request.get_data())
             raise ValidationException()
 
