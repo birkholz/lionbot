@@ -9,6 +9,7 @@ _A discord bot for Northernlion's subscriber server that helps keep his subscrib
 * Self-service role management via reactions
 * YouTube video upload notifications to content-specific channels (e.g. Spelunky 2 goes to #spelunky)
 * Twitch live notifications (because Twitch push notifications suck)
+* Twitter stream that posts all tweets/retweets to a channel
 * A menu of chat commands for moderators to manage the bot
 
 
@@ -31,6 +32,8 @@ All commands are only useable by moderators.
 * `!lion emoji` Changes the emoji of a role.
 * `!lion delete` Deletes a content stream.
 * `!lion rolecounts` Lists the number of users with each role.
+
+For all commands, see the list of commands in code [here](https://github.com/birkholz/lionbot/blob/master/lionbot/worker.py#L25).
 
 ### Development
 
