@@ -203,10 +203,10 @@ def twitch_webhook():
 
     logging.info(f"Received Twitch webhook: {request.data}")
     json_body = request.get_json()
-    if json_body['challenge']:
+    if json_body.get('challenge'):
         return json_body['challenge'], 200
 
-    if json_body['event']:
+    if json_body.get('event'):
         event = json_body['event']
         if event['type'] == 'live':
             send_twitch_message(event)
