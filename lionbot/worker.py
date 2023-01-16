@@ -179,6 +179,7 @@ class LionBot(discord.Client):
         stream = session.query(Stream).filter_by(guild_id=guild.id, emoji=payload.emoji.name).first()
         if not stream:
             logging.error(f"No stream found for emoji: {payload.emoji.name}")
+            return
 
         role = guild.get_role(stream.role_id)
         if role is not None:
