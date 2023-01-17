@@ -14,7 +14,11 @@ from lionbot.errors import CommandError
 from lionbot.utils import init_sentry
 
 logging.basicConfig(level=logging.INFO)
-engine = create_engine(os.environ.get('DATABASE_URL'))
+
+database_uri = os.getenv("DATABASE_URL")  # or other relevant config var
+if database_uri and database_uri.startswith("postgres://"):
+    database_uri = database_uri.replace("postgres://", "postgresql://", 1)
+engine = create_engine(database_uri)
 Session = sessionmaker(bind=engine)
 session = Session()
 

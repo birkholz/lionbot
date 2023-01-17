@@ -28,9 +28,11 @@ def run_migrations_offline():
     script output.
 
     """
-    url = os.environ.get('DATABASE_URL')
+    database_uri = os.getenv("DATABASE_URL")  # or other relevant config var
+    if database_uri and database_uri.startswith("postgres://"):
+        database_uri = database_uri.replace("postgres://", "postgresql://", 1)
     context.configure(
-        url=url,
+        url=database_uri,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -47,7 +49,10 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    connectable = create_engine(os.environ.get('DATABASE_URL'))
+    database_uri = os.getenv("DATABASE_URL")  # or other relevant config var
+    if database_uri and database_uri.startswith("postgres://"):
+        database_uri = database_uri.replace("postgres://", "postgresql://", 1)
+    connectable = create_engine(database_uri)
 
     with connectable.connect() as connection:
         context.configure(
