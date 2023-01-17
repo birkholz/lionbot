@@ -4,7 +4,7 @@ import signal
 import sys
 import time
 
-from TwitterAPI import TwitterAPI, TwitterRequestError
+from TwitterAPI import TwitterAPI, TwitterRequestError, TwitterConnectionError
 from sentry_sdk import capture_exception
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -75,6 +75,13 @@ def start_stream(wait=30):
             logging.info(f'Waiting {wait} seconds to retry...')
             time.sleep(wait)
             start_stream(wait=wait+30)
+    except TwitterConnectionError:
+        stream = None
+        # the error's __init__ logs itself
+        logging.info(f'Waiting {wait} seconds to retry...')
+        time.sleep(wait)
+        start_stream(wait=wait+30)
+
 
 
 def signal_handler(signal, frame):
