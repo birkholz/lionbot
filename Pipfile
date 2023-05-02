@@ -16,7 +16,7 @@ gunicorn = "~=20.0"
 flask-sqlalchemy = "~=3.0"
 alembic = "~=1.4"
 twitterapi = "~=2.6"
-flask = "~=2.2"
+flask = "~=2.3"
 
 [requires]
 python_version = "3.8"
