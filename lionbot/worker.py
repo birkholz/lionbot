@@ -37,11 +37,6 @@ class LionBot(discord.Client):
             "desc": "Adds a custom role",
             "format": "`!lion addcustom @role 👍 Role Description`"
         }),
-        ("twitter", {
-            "name": "twitter",
-            "desc": "Sets up a twitter feed",
-            "format": "`!lion twitter #channel @role 👍 Role Description`"
-        }),
         ("playlist", {
             "name": "playlist",
             "desc": "Sets the playlist for a content stream",
@@ -66,11 +61,6 @@ class LionBot(discord.Client):
             "name": "pinning",
             "desc": "Toggles auto-pinning of YouTube videos",
             "format": "`!lion pinning`"
-        }),
-        ("twitterreplies", {
-            "name": "twitterreplies",
-            "desc": "Toggles including replies in the twitter feed",
-            "format": "`!lion twitterreplies`"
         }),
         ("playlistlinks", {
            "name": "playlistlinks",
@@ -231,21 +221,18 @@ class LionBot(discord.Client):
 
         streams = session.query(Stream).filter_by(guild_id=guild.id).order_by(Stream.id)
         twitch_stream = None
-        twitter_stream = None
         content_streams = []
         custom_roles = []
         for stream in streams:
             if stream.id == guild.twitch_stream_id:
                 twitch_stream = stream
-            elif stream.id == guild.twitter_stream_id:
-                twitter_stream = stream
             elif stream.title_contains is None and stream.playlist_id is None:
                 custom_roles.append(stream)
             else:
                 content_streams.append(stream)
 
-        # Always put twitch/twitter first
-        content_streams = [twitch_stream, twitter_stream] + content_streams
+        # Always put twitch first
+        content_streams = [twitch_stream,] + content_streams
 
         # Build message
         message_text = 'React to this message to be mentioned when:'
@@ -400,38 +387,6 @@ class LionBot(discord.Client):
         channel = discord.utils.get(self.get_all_channels(), id=guild.role_channel_id)
         await self.send_role_message(channel, guild=guild)
 
-    async def configure_twitter(self, message):
-        channel, role, emoji, title = self.parse_args(message.content, count=4, maxsplits=3)
-        channel_id = self.parse_channel(channel)
-        role_id = self.parse_role(role)
-        emoji_name, emoji_id = self.parse_emoji(emoji)
-
-        stream = Stream(
-            guild_id = message.guild.id,
-            description=title,
-            emoji=emoji_name,
-            emoji_id=emoji_id,
-            channel_id=channel_id,
-            role_id=role_id
-        )
-        session.add(stream)
-        session.commit()
-
-        guild = session.query(Guild).filter_by(id=message.guild.id).first()
-        if guild.twitter_stream_id is not None:
-            old_stream = guild.twitter_stream
-            guild.twitter_stream_id = None
-            session.add(guild)
-            session.commit()
-            session.delete(old_stream)
-
-        guild.twitter_stream_id = stream.id
-        session.add(guild)
-        session.commit()
-
-        channel = discord.utils.get(self.get_all_channels(), id=guild.role_channel_id)
-        await self.send_role_message(channel, guild=guild)
-
     async def toggle_pinning(self, channel):
         guild = session.query(Guild).filter_by(id=channel.guild.id).first()
         if not guild:
@@ -523,16 +478,6 @@ class LionBot(discord.Client):
         session.commit()
         await message.channel.send(f"Playlist set for role <@&{role_id}>")
 
-    async def toggle_twitter_replies(self, message):
-        guild_id = message.channel.guild.id
-        guild = session.query(Guild).filter_by(id=guild_id).first()
-        guild.twitter_replies = not guild.twitter_replies
-        session.add(guild)
-        session.commit()
-
-        states = {True: 'on', False: 'off'}
-        await message.channel.send(f"Turning replies: {states[guild.twitter_replies]}")
-
     async def toggle_playlist_links(self, message):
         guild_id = message.channel.guild.id
         guild = session.query(Guild).filter_by(id=guild_id).first()
@@ -586,17 +531,6 @@ class LionBot(discord.Client):
         elif message.content == '!lion pinning':
             if self.is_moderator(message.author):
                 await self.toggle_pinning(message.channel)
-
-        elif message.content == '!lion twitterreplies':
-            if self.is_moderator(message.author):
-                await self.toggle_twitter_replies(message)
-
-        elif message.content[:13] == '!lion twitter':
-            if self.is_moderator(message.author):
-                try:
-                    await self.configure_twitter(message)
-                except CommandError as e:
-                    await message.channel.send(f'ERROR: {e.msg}\nFormat: `!lion twitter #channel @role 👍 Role Description`')
 
         elif message.content == '!lion countroleusers':
             if self.is_moderator(message.author):
