@@ -1,3 +1,4 @@
+import datetime
 import hmac
 import logging
 import os
@@ -33,6 +34,9 @@ discord_api_root = 'https://discord.com/api/v6'
 
 
 def send_youtube_message(video):
+    if video_is_old(video.yt_videoid):
+        return
+
     for stream in db.session.query(Stream).all():
         posted = db.session.query(Video).filter_by(video_id=video.id, guild_id=stream.guild_id).count()
         if posted > 0:
@@ -106,6 +110,27 @@ def video_is_in_playlist(video_id, playlist_id):
 
     return body['pageInfo']['totalResults'] > 0
 
+
+def video_is_old(video_id):
+    params = {
+        'key': os.environ.get('YOUTUBE_API_KEY'),
+        'id': video_id,
+        'part': 'snippet'
+    }
+    param_string = urllib.parse.urlencode(params)
+    url = f'https://www.googleapis.com/youtube/v3/videos?{param_string}'
+    response = requests.get(url)
+    body = response.json()
+    if 'error' in body:
+        return False
+
+    one_week_ago = datetime.datetime.now() - datetime.timedelta(weeks=1)
+    publish_date = datetime.datetime.strptime(
+        body['items'][0]['snippet']['publishedAt'],
+        '%Y-%m-%dT%H:%M:%SZ'
+    )
+
+    return publish_date > one_week_ago
 
 @app.route('/youtube/webhook', methods=['GET', 'POST'])
 def youtube_webhook():
