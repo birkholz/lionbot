@@ -130,7 +130,7 @@ def video_is_old(video_id):
         '%Y-%m-%dT%H:%M:%SZ'
     )
 
-    return publish_date > one_week_ago
+    return publish_date < one_week_ago
 
 @app.route('/youtube/webhook', methods=['GET', 'POST'])
 def youtube_webhook():
