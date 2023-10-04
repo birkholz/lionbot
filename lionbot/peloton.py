@@ -88,6 +88,9 @@ def post_workouts(workouts):
 
         embeds.append(embed)
 
+    if not embeds:
+        return
+
     json_body = {
         "content": "Northernlion finished a workout",
         "embeds": embeds,
