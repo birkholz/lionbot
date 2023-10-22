@@ -49,6 +49,9 @@ def post_workouts(workouts):
         end_time = datetime.datetime.fromtimestamp(workout['end_time'])
         total_output = workout['total_work']
         duration = end_time - start_time
+        if duration.seconds == 0:
+            continue
+
         avg_output = total_output / duration.seconds
 
         instructor_name = workout['ride']['instructor']['name']
