@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import sys
 
 import requests
 from sentry_sdk import capture_exception
@@ -35,6 +36,10 @@ class PelotonAPI:
             # Private user, must accept follow to view workouts
             return []
 
+        if response.status_code == 503:
+            logging.error('Peloton API returned 503.')
+            sys.exit(1)
+
         return response.json()['data']
 
     def get_users_in_tag(self, tag, after=None):
@@ -54,6 +59,10 @@ class PelotonAPI:
         if response.status_code == 401:
             self.login()
             return self.get_users_in_tag(tag, after)
+
+        if response.status_code == 503:
+            logging.error('Peloton API returned 503.')
+            sys.exit(1)
 
         return response.json()['data']
 
@@ -230,6 +239,7 @@ def post_leaderboard(api, nl_user_id):
         for workout in workouts
     }
     totals = {}
+    players_who_pbd = []
 
     users = get_users_in_tag(api)
 
@@ -254,6 +264,9 @@ def post_leaderboard(api, nl_user_id):
                     'is_new_pb': workout['is_total_work_personal_record'],
                 }
                 rides[ride_id]['workouts'].append(workout_obj)
+
+                if workout['is_total_work_personal_record']:
+                    players_who_pbd.append(user['username'])
 
                 if user['username'] not in totals.keys():
                     totals[user['username']] = {
@@ -313,6 +326,14 @@ def post_leaderboard(api, nl_user_id):
             ]
         }
 
+        embeds.append(embed)
+
+    if players_who_pbd:
+        embed = {
+            'type': 'rich',
+            'title': '⭐ Congratulations for the new PBs! ⭐',
+            'description': ', '.join(sorted(set(players_who_pbd)))
+        }
         embeds.append(embed)
 
     if not embeds:
