@@ -332,7 +332,7 @@ def post_leaderboard(api, nl_user_id):
         embed = {
             'type': 'rich',
             'title': '⭐ Congratulations for the new PBs! ⭐',
-            'description': ', '.join(sorted(set(players_who_pbd)))
+            'description': ', '.join(sorted(list(set(players_who_pbd))))
         }
         embeds.append(embed)
 
