@@ -6,10 +6,11 @@ _A discord bot for Northernlion's subscriber server that helps keep his subscrib
 
 ### Features
 
-* Self-service role management via reactions
+* Self-service role management via reactions (pre-dates Discord's own role management)
 * YouTube video upload notifications to content-specific channels (e.g. Spelunky 2 goes to #spelunky)
 * Twitch live notifications (because Twitch push notifications suck)
-* Twitter stream that posts all tweets/retweets to a channel
+* ~~Twitter stream that posts all tweets/retweets to a channel~~ (RIP Twitter API)
+* Peloton leaderboards for #TheEggCarton
 * A menu of chat commands for moderators to manage the bot
 
 
