@@ -302,7 +302,7 @@ def post_leaderboard(api, nl_user_id):
         embed = {
             'type': 'rich',
             'title': 'Total Leaderboard',
-            'description': 'Total output across all matching rides for the day',
+            'description': 'Total output across all matching rides for the day. Only rides matching NL\'s are counted.',
             'fields': [
                 {
                     'name': f'{humanize(i)} Place',
@@ -319,6 +319,7 @@ def post_leaderboard(api, nl_user_id):
         return
 
     json_body = {
+        "content": f"Here are the leaderboards for yesterday's rides. Private account? Read the pinned message!",
         "embeds": embeds,
         "allowed_mentions": {
             "parse": ["roles"]
