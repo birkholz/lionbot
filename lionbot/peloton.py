@@ -171,6 +171,9 @@ def get_users_in_tag(api, after=None):
 
 def has_no_duration(workout):
     start_time = datetime.datetime.fromtimestamp(workout['start_time'])
+    if not workout['end_time']:
+        return True
+
     end_time = datetime.datetime.fromtimestamp(workout['end_time'])
     duration = end_time - start_time
     if duration.seconds == 0:
@@ -186,10 +189,8 @@ def humanize(i):
         return '2nd'
     if i == 2:
         return '3rd'
-    if i == 3:
-        return '4th'
-    if i == 4:
-        return '5th'
+    if i >= 3:
+        return f'{i+1}th'
 
 
 def plural(i):
@@ -250,6 +251,7 @@ def post_leaderboard(api, nl_user_id):
                 workout_obj = {
                     'user_username': user['username'],
                     'total_work': workout['total_work'],
+                    'is_new_pb': workout['is_total_work_personal_record'],
                 }
                 rides[ride_id]['workouts'].append(workout_obj)
 
@@ -282,9 +284,10 @@ def post_leaderboard(api, nl_user_id):
             'fields': [
                 {
                     'name': f'{humanize(i)} Place',
-                    'value': f'{workout["user_username"]} - **{round(workout["total_work"] / 1000)}** kj '
-                             f'({totals[workout["user_username"]]["rides"]} '
-                             f'ride{plural(totals[workout["user_username"]]["rides"])})'
+                    'value': f'{workout["user_username"]} - **{round(workout["total_work"] / 1000)}** kj'
+                             f'{" (⭐ **NEW PB** ⭐)" if workout["is_new_pb"] else ""}'
+                             f' ({totals[workout["user_username"]]["rides"]}'
+                             f' ride{plural(totals[workout["user_username"]]["rides"])})'
                 }
                 for i, workout in enumerate(ride['workouts'])
             ]
