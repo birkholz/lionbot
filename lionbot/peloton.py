@@ -266,7 +266,10 @@ def post_leaderboard(api, nl_user_id):
                 rides[ride_id]['workouts'].append(workout_obj)
 
                 if workout['is_total_work_personal_record']:
-                    players_who_pbd.append(user['username'])
+                    players_who_pbd.append({
+                        'username': user['username'],
+                        'total_work': workout['total_work']
+                    })
 
                 if user['username'] not in totals.keys():
                     totals[user['username']] = {
@@ -329,10 +332,13 @@ def post_leaderboard(api, nl_user_id):
         embeds.append(embed)
 
     if players_who_pbd:
+        player_callouts = [f'{u["username"]} (**{round(u["total_work"] / 1000)}** kj)' for u in players_who_pbd]
+        player_callouts = sorted(player_callouts)
+        desc = ', '.join(player_callouts)
         embed = {
             'type': 'rich',
             'title': '⭐ Congratulations for the new PBs! ⭐',
-            'description': ', '.join(sorted(list(set(players_who_pbd))))
+            'description': desc
         }
         embeds.append(embed)
 
