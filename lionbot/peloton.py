@@ -268,7 +268,8 @@ def post_leaderboard(api, nl_user_id):
                 if workout['is_total_work_personal_record']:
                     players_who_pbd.append({
                         'username': user['username'],
-                        'total_work': workout['total_work']
+                        'total_work': workout['total_work'],
+                        'duration': round((workout['end_time'] - workout['start_time']) / 60)
                     })
 
                 if user['username'] not in totals.keys():
@@ -332,7 +333,10 @@ def post_leaderboard(api, nl_user_id):
         embeds.append(embed)
 
     if players_who_pbd:
-        player_callouts = [f'{u["username"]} (**{round(u["total_work"] / 1000)}** kj)' for u in players_who_pbd]
+        player_callouts = [
+            f'{u["username"]} (**{round(u["total_work"] / 1000)}** kj/{u["duration"]} mins)'
+            for u in players_who_pbd
+        ]
         player_callouts = sorted(player_callouts)
         desc = ', '.join(player_callouts)
         embed = {
