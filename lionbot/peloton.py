@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import statistics
 import sys
 
 import requests
@@ -287,6 +288,9 @@ def post_leaderboard(api, nl_user_id):
     for _ride_id, ride in rides.items():
         # sort by output desc
         ride['workouts'] = sorted(ride['workouts'], key=lambda w: w['total_work'], reverse=True)
+        outputs = [w['total_work'] for w in ride['workouts']]
+        median_output = statistics.median(outputs)
+        mean_output = statistics.mean(outputs)
         # cut off top 5
         ride['workouts'] = ride['workouts'][:5]
 
@@ -309,6 +313,10 @@ def post_leaderboard(api, nl_user_id):
                 for i, workout in enumerate(ride['workouts'])
             ]
         }
+        embed['fields'].append({
+            'name': 'Median / Average',
+            'value': f'**{round(median_output / 1000)}** kj / **{round(mean_output / 1000)}** kj'
+        })
 
         embeds.append(embed)
 
@@ -318,8 +326,9 @@ def post_leaderboard(api, nl_user_id):
 
         embed = {
             'type': 'rich',
-            'title': 'Total Leaderboard',
-            'description': 'Total output across all matching rides for the day. Only rides matching NL\'s are counted.',
+            'title': 'Endurance Leaderboard',
+            'description': 'Combined output across all matching rides for the day. '
+                           'Only rides matching NL\'s are counted.',
             'fields': [
                 {
                     'name': f'{humanize(i)} Place',
