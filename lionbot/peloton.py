@@ -255,7 +255,7 @@ def post_leaderboard(api, nl_user_id):
                     continue
 
                 start_time = datetime.datetime.fromtimestamp(workout['start_time'])
-                min_dt = datetime.datetime.fromtimestamp(ride['start_time']) - datetime.timedelta(hours=1)
+                min_dt = datetime.datetime.fromtimestamp(ride['start_time']) - datetime.timedelta(hours=12)
                 if start_time < min_dt:
                     continue
 
@@ -291,12 +291,13 @@ def post_leaderboard(api, nl_user_id):
         outputs = [w['total_work'] for w in ride['workouts']]
         median_output = statistics.median(outputs)
         mean_output = statistics.mean(outputs)
+        rider_count = len(ride['workouts'])
         # cut off top 5
         ride['workouts'] = ride['workouts'][:5]
 
         desc = f"""Instructor: {ride["instructor_name"]}\r
-        Aired: <t:{ride["air_time"]}:F>\r
-        NL rode: <t:{ride["start_time"]}:F>"""
+        NL rode: <t:{ride["start_time"]}:F>\r
+        Total riders: **{rider_count}**"""
         embed = {
             'type': 'rich',
             'title': f'{ride["title"]} - Leaderboard',
@@ -322,13 +323,15 @@ def post_leaderboard(api, nl_user_id):
 
     if totals:
         totals = sorted(totals.values(), key=lambda u: u['output'], reverse=True)
+        total_riders = len(totals)
         totals = totals[:10]
 
         embed = {
             'type': 'rich',
             'title': 'Endurance Leaderboard',
-            'description': 'Combined output across all matching rides for the day. '
-                           'Only rides matching NL\'s are counted.',
+            'description': 'Combined output across all matching rides for the day.\r'
+                           'Only rides matching NL\'s are counted.\r'
+                           f'Total riders: **{total_riders}**',
             'fields': [
                 {
                     'name': f'{humanize(i)} Place',
@@ -359,7 +362,8 @@ def post_leaderboard(api, nl_user_id):
         return
 
     json_body = {
-        "content": f"Here are the leaderboards for yesterday's rides. Private account? Read the pinned message!",
+        "content": "Here are #TheEggCarton leaderboards for yesterday's rides. "
+                   "Private account? Read the pinned message!",
         "embeds": embeds,
         "allowed_mentions": {
             "parse": ["roles"]
