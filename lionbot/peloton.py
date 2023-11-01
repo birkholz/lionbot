@@ -324,6 +324,9 @@ def post_leaderboard(api, nl_user_id):
     if totals:
         totals = sorted(totals.values(), key=lambda u: u['output'], reverse=True)
         total_riders = len(totals)
+        ride_counts = [w["rides"] for w in totals]
+        median_ride_count = statistics.median(ride_counts)
+        average_ride_count = round(statistics.mean(ride_counts), 2)
         totals = totals[:10]
 
         embed = {
@@ -331,7 +334,8 @@ def post_leaderboard(api, nl_user_id):
             'title': 'Endurance Leaderboard',
             'description': 'Combined output across all matching rides for the day.\r'
                            'Only rides matching NL\'s are counted.\r'
-                           f'Total riders: **{total_riders}**',
+                           f'Total riders: **{total_riders}**\r'
+                           f'Median/Average ride count: **{median_ride_count}** / **{average_ride_count}**',
             'fields': [
                 {
                     'name': f'{humanize(i)} Place',
