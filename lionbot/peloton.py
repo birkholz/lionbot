@@ -37,8 +37,8 @@ class PelotonAPI:
             # Private user, must accept follow to view workouts
             return []
 
-        if response.status_code == 503:
-            logging.error('Peloton API returned 503.')
+        if response.status_code >= 500:
+            logging.error(f'Peloton API returned {response.status_code}.')
             sys.exit(1)
 
         return response.json()['data']
@@ -284,6 +284,7 @@ def post_leaderboard(api, nl_user_id):
                     totals[user['username']]['rides'] += 1
 
     embeds = []
+    leaderboard_size = os.environ.get('LEADERBOARD_SIZE', 10)
 
     for _ride_id, ride in rides.items():
         # sort by output desc
@@ -292,8 +293,8 @@ def post_leaderboard(api, nl_user_id):
         median_output = statistics.median(outputs)
         mean_output = statistics.mean(outputs)
         rider_count = len(ride['workouts'])
-        # cut off top 5
-        ride['workouts'] = ride['workouts'][:5]
+        # cut top
+        ride['workouts'] = ride['workouts'][:leaderboard_size]
 
         desc = f"""Instructor: {ride["instructor_name"]}\r
         NL rode: <t:{ride["start_time"]}:F>\r
@@ -327,7 +328,7 @@ def post_leaderboard(api, nl_user_id):
         ride_counts = [w["rides"] for w in totals]
         median_ride_count = statistics.median(ride_counts)
         average_ride_count = round(statistics.mean(ride_counts), 2)
-        totals = totals[:10]
+        totals = totals[:leaderboard_size]
 
         embed = {
             'type': 'rich',
