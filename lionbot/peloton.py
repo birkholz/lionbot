@@ -3,6 +3,7 @@ import logging
 import os
 import statistics
 import sys
+from zoneinfo import ZoneInfo
 
 import requests
 from sentry_sdk import capture_exception
@@ -76,7 +77,7 @@ def post_workouts(api, nl_user_id):
     embeds = []
 
     for workout in workouts:
-        if workout['status'] != 'COMPLETE':
+        if workout['status'] != 'COMPLETE' or workout['metrics_type'] != 'cycling':
             continue
 
         class_id = workout['ride']['id']
@@ -98,7 +99,7 @@ def post_workouts(api, nl_user_id):
         ride_title = workout['ride']['title']
 
         new_pb = workout['is_total_work_personal_record']
-        pb_line = '\n\n ⭐ ️**New Total Work Personal Record!** ⭐️' if new_pb else ''
+        pb_line = '\n\n ⭐ ️**New Total Work Personal Record!** ⭐ ' if new_pb else ''
 
         embed = {
             'type': 'rich',
@@ -155,11 +156,16 @@ def is_within_interval(timestamp, interval):
     return dt > min_dt
 
 
-def is_previous_day(timestamp):
-    dt = datetime.datetime.fromtimestamp(timestamp)
-    now = datetime.datetime.now()
-    max_dt = now - datetime.timedelta(hours=24)
-    min_dt = now - datetime.timedelta(hours=48)
+def is_previous_day(workout):
+    # Determine previous day based on user's own timezone
+    zi = ZoneInfo(workout['timezone'])
+    yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+    # midnight yesterday
+    min_dt = datetime.datetime.combine(yesterday, datetime.time.min).replace(tzinfo=zi)
+    # 23:59:59 yesterday
+    max_dt = datetime.datetime.combine(yesterday, datetime.time.max).replace(tzinfo=zi)
+
+    dt = datetime.datetime.fromtimestamp(workout['created_at']).replace(tzinfo=zi)
     return min_dt < dt < max_dt
 
 
@@ -209,19 +215,36 @@ def plural(i):
     return ''
 
 
+def valid_workout(workout):
+    if workout['status'] != 'COMPLETE' or has_no_duration(workout) or workout['metrics_type'] != 'cycling':
+        return False
+
+    return True
+
+
+def ride_count_str(totals, workout):
+    if workout['user_username'] not in totals:
+        return ''
+
+    ride_count = totals[workout['user_username']]['rides']
+    return f'({ride_count} ride{plural(ride_count)})'
+
+
+def pb_list_str(pb_dict):
+    pb_list = [
+        f'**{round(pb["total_work"] / 1000)}** kj/{pb["duration"]} mins'
+        for pb in pb_dict
+    ]
+    return ', '.join(pb_list)
+
+
 def post_leaderboard(api, nl_user_id):
     workouts = api.get_workouts(nl_user_id)
     workouts = [
         workout
         for workout in workouts
-        if is_previous_day(workout['created_at'])
+        if is_previous_day(workout)
     ]
-
-    def valid_workout(workout):
-        if workout['status'] != 'COMPLETE' or has_no_duration(workout):
-            return False
-
-        return True
 
     workouts = filter(valid_workout, workouts)
     # Put in chrono order
@@ -240,7 +263,7 @@ def post_leaderboard(api, nl_user_id):
         for workout in workouts
     }
     totals = {}
-    players_who_pbd = []
+    players_who_pbd = {}
 
     users = get_users_in_tag(api)
 
@@ -250,10 +273,39 @@ def post_leaderboard(api, nl_user_id):
 
         for workout in user_workouts:
             workout_ride_id = workout['ride']['id']
+
+            if is_previous_day(workout):
+                # Did user PB?
+                if workout['is_total_work_personal_record']:
+                    pb_dict = {
+                        'total_work': workout['total_work'],
+                        'duration': round((workout['end_time'] - workout['start_time']) / 60)
+                    }
+                    if user['username'] not in players_who_pbd:
+                        players_who_pbd[user['username']] = [pb_dict]
+                    else:
+                        players_who_pbd[user['username']].append(pb_dict)
+
+                # Calculate user's totals
+                if user['username'] not in totals.keys():
+                    totals[user['username']] = {
+                        'username': user['username'],
+                        'output': workout['total_work'],
+                        'rides': 1,
+                        'duration': round((workout['end_time'] - workout['start_time']) / 60)
+                    }
+                else:
+                    totals[user['username']]['output'] += workout['total_work']
+                    totals[user['username']]['rides'] += 1
+                    totals[user['username']]['duration'] += round((workout['end_time'] - workout['start_time']) / 60)
+
+            # Add workout to ride leaderboard
             for ride_id, ride in rides.items():
                 if workout_ride_id != ride_id:
                     continue
 
+                # was ride recent?
+                # These rides can be up to 12 hours before NL
                 start_time = datetime.datetime.fromtimestamp(workout['start_time'])
                 min_dt = datetime.datetime.fromtimestamp(ride['start_time']) - datetime.timedelta(hours=12)
                 if start_time < min_dt:
@@ -266,27 +318,11 @@ def post_leaderboard(api, nl_user_id):
                 }
                 rides[ride_id]['workouts'].append(workout_obj)
 
-                if workout['is_total_work_personal_record']:
-                    players_who_pbd.append({
-                        'username': user['username'],
-                        'total_work': workout['total_work'],
-                        'duration': round((workout['end_time'] - workout['start_time']) / 60)
-                    })
-
-                if user['username'] not in totals.keys():
-                    totals[user['username']] = {
-                        'username': user['username'],
-                        'output': workout['total_work'],
-                        'rides': 1
-                    }
-                else:
-                    totals[user['username']]['output'] += workout['total_work']
-                    totals[user['username']]['rides'] += 1
-
     embeds = []
     leaderboard_size = os.environ.get('LEADERBOARD_SIZE', 10)
 
-    for _ride_id, ride in rides.items():
+    # Generate leaderboards
+    for ride in rides.values():
         # sort by output desc
         ride['workouts'] = sorted(ride['workouts'], key=lambda w: w['total_work'], reverse=True)
         outputs = [w['total_work'] for w in ride['workouts']]
@@ -299,6 +335,7 @@ def post_leaderboard(api, nl_user_id):
         desc = f"""Instructor: {ride["instructor_name"]}\r
         NL rode: <t:{ride["start_time"]}:F>\r
         Total riders: **{rider_count}**"""
+
         embed = {
             'type': 'rich',
             'title': f'{ride["title"]} - Leaderboard',
@@ -309,8 +346,7 @@ def post_leaderboard(api, nl_user_id):
                     'name': f'{humanize(i)} Place',
                     'value': f'{workout["user_username"]} - **{round(workout["total_work"] / 1000)}** kj'
                              f'{" (⭐ **NEW PB** ⭐)" if workout["is_new_pb"] else ""}'
-                             f' ({totals[workout["user_username"]]["rides"]}'
-                             f' ride{plural(totals[workout["user_username"]]["rides"])})'
+                             f' {ride_count_str(totals, workout)}'
                 }
                 for i, workout in enumerate(ride['workouts'])
             ]
@@ -322,6 +358,7 @@ def post_leaderboard(api, nl_user_id):
 
         embeds.append(embed)
 
+    # Generate endurance leaderboard
     if totals:
         totals = sorted(totals.values(), key=lambda u: u['output'], reverse=True)
         total_riders = len(totals)
@@ -329,19 +366,19 @@ def post_leaderboard(api, nl_user_id):
         median_ride_count = statistics.median(ride_counts)
         average_ride_count = round(statistics.mean(ride_counts), 2)
         totals = totals[:leaderboard_size]
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
 
         embed = {
             'type': 'rich',
-            'title': 'Endurance Leaderboard',
-            'description': 'Combined output across all matching rides for the day.\r'
-                           'Only rides matching NL\'s are counted.\r'
+            'title': f'Endurance Leaderboard {yesterday.isoformat()}',
+            'description': 'Combined output across all of yesterday\'s rides.\r'
                            f'Total riders: **{total_riders}**\r'
                            f'Median/Average ride count: **{median_ride_count}** / **{average_ride_count}**',
             'fields': [
                 {
                     'name': f'{humanize(i)} Place',
                     'value': f'{user["username"]} - **{round(user["output"] / 1000)}** kj ({user["rides"]} '
-                             f'ride{plural(user["rides"])})'
+                             f'ride{plural(user["rides"])} / {user["duration"]} mins)'
                 }
                 for i, user in enumerate(totals)
             ]
@@ -349,13 +386,16 @@ def post_leaderboard(api, nl_user_id):
 
         embeds.append(embed)
 
+    # Generate PB callout
     if players_who_pbd:
         player_callouts = [
-            f'{u["username"]} (**{round(u["total_work"] / 1000)}** kj/{u["duration"]} mins)'
-            for u in players_who_pbd
+            f'{un} ({pb_list_str(u_dict)})'
+            for un, u_dict in players_who_pbd.items()
         ]
-        player_callouts = sorted(player_callouts)
+        player_callouts = sorted(player_callouts, key=lambda x: x.lower())
         desc = ', '.join(player_callouts)
+        # Escape double underscore
+        desc = desc.replace('__', '\\_\\_')
         embed = {
             'type': 'rich',
             'title': '⭐ Congratulations for the new PBs! ⭐',
@@ -367,8 +407,10 @@ def post_leaderboard(api, nl_user_id):
         return
 
     json_body = {
-        "content": "Here are #TheEggCarton leaderboards for yesterday's rides. "
-                   "Private account? Read the pinned message!",
+        "content": "# Leaderboards\n"
+                   "Ride leaderboards are for NL's rides yesterday "
+                   "and include all matching rides from 12 hours before NL until now.\n"
+                   "Endurance leaderboards and the PB callout are only yesterday's rides (in your timezone).",
         "embeds": embeds,
         "allowed_mentions": {
             "parse": ["roles"]
