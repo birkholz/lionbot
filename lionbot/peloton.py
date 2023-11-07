@@ -117,12 +117,12 @@ def post_workouts(api, nl_user_id):
                 },
                 {
                     'name': 'Total Output',
-                    'value': f'{round(total_output / 1000)} kj',
+                    'value': f'{round(total_output / 1000)} kJ',
                     'inline': True
                 },
                 {
                     'name': 'Avg Output',
-                    'value': f'{round(avg_output)} watts',
+                    'value': f'{round(avg_output)} W',
                     'inline': True
                 }
             ]
@@ -232,7 +232,7 @@ def ride_count_str(totals, workout):
 
 def pb_list_str(pb_dict):
     pb_list = [
-        f'**{round(pb["total_work"] / 1000)}** kj/{pb["duration"]} mins'
+        f'**{round(pb["total_work"] / 1000)}** kJ/{pb["duration"]} mins'
         for pb in pb_dict
     ]
     return ', '.join(pb_list)
@@ -344,7 +344,7 @@ def post_leaderboard(api, nl_user_id):
             'fields': [
                 {
                     'name': f'{humanize(i)} Place',
-                    'value': f'{workout["user_username"]} - **{round(workout["total_work"] / 1000)}** kj'
+                    'value': f'{workout["user_username"]} - **{round(workout["total_work"] / 1000)}** kJ'
                              f'{" (⭐ **NEW PB** ⭐)" if workout["is_new_pb"] else ""}'
                              f' {ride_count_str(totals, workout)}'
                 }
@@ -353,7 +353,7 @@ def post_leaderboard(api, nl_user_id):
         }
         embed['fields'].append({
             'name': 'Median / Average',
-            'value': f'**{round(median_output / 1000)}** kj / **{round(mean_output / 1000)}** kj'
+            'value': f'**{round(median_output / 1000)}** kJ / **{round(mean_output / 1000)}** kJ'
         })
 
         embeds.append(embed)
@@ -365,19 +365,26 @@ def post_leaderboard(api, nl_user_id):
         ride_counts = [w["rides"] for w in totals]
         median_ride_count = statistics.median(ride_counts)
         average_ride_count = round(statistics.mean(ride_counts), 2)
+        total_output = sum(w['output'] for w in totals)
         totals = totals[:leaderboard_size]
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
+
+        if total_output / 1000000 > 10:
+            total_output_str = f'**{round(total_output / 1000000, 2)}** MJ'
+        else:
+            total_output_str = f'**{round(total_output / 1000)}** kJ'
 
         embed = {
             'type': 'rich',
             'title': f'Endurance Leaderboard {yesterday.isoformat()}',
             'description': 'Combined output across all of yesterday\'s rides.\r'
                            f'Total riders: **{total_riders}**\r'
-                           f'Median/Average ride count: **{median_ride_count}** / **{average_ride_count}**',
+                           f'Median/Average ride count: **{median_ride_count}** / **{average_ride_count}**\r'
+                           f'Combined Output: {total_output_str}',
             'fields': [
                 {
                     'name': f'{humanize(i)} Place',
-                    'value': f'{user["username"]} - **{round(user["output"] / 1000)}** kj ({user["rides"]} '
+                    'value': f'{user["username"]} - **{round(user["output"] / 1000)}** kJ ({user["rides"]} '
                              f'ride{plural(user["rides"])} / {user["duration"]} mins)'
                 }
                 for i, user in enumerate(totals)
