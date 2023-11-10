@@ -84,14 +84,11 @@ def post_workouts(api, nl_user_id):
         class_url = f'https://members.onepeloton.com/classes/cycling?modal=classDetailsModal&classId={class_id}'
 
         created_at = datetime.datetime.fromtimestamp(workout['created_at'])
-        start_time = datetime.datetime.fromtimestamp(workout['start_time'])
-        end_time = datetime.datetime.fromtimestamp(workout['end_time'])
         total_output = workout['total_work']
-        duration = end_time - start_time
-        if duration.seconds == 0:
+        if has_no_duration(workout):
             continue
 
-        avg_output = total_output / duration.seconds
+        avg_output = round(total_output / ride_duration_or_actual(workout))
 
         instructor_name = workout['ride']['instructor']['name']
         instructor_image = workout['ride']['instructor']['image_url']
@@ -238,6 +235,14 @@ def pb_list_str(pb_dict):
     return ', '.join(pb_list)
 
 
+def ride_duration_or_actual(workout):
+    if workout['ride']['duration']:
+        return workout['ride']['duration']
+
+    return workout['end_time'] - workout['start_time']
+
+
+
 def post_leaderboard(api, nl_user_id):
     workouts = api.get_workouts(nl_user_id)
     workouts = [
@@ -279,7 +284,7 @@ def post_leaderboard(api, nl_user_id):
                 if workout['is_total_work_personal_record']:
                     pb_dict = {
                         'total_work': workout['total_work'],
-                        'duration': round((workout['end_time'] - workout['start_time']) / 60)
+                        'duration': round(ride_duration_or_actual(workout) / 60)
                     }
                     if user['username'] not in players_who_pbd:
                         players_who_pbd[user['username']] = [pb_dict]
@@ -292,12 +297,12 @@ def post_leaderboard(api, nl_user_id):
                         'username': user['username'],
                         'output': workout['total_work'],
                         'rides': 1,
-                        'duration': round((workout['end_time'] - workout['start_time']) / 60)
+                        'duration': round(ride_duration_or_actual(workout) / 60)
                     }
                 else:
                     totals[user['username']]['output'] += workout['total_work']
                     totals[user['username']]['rides'] += 1
-                    totals[user['username']]['duration'] += round((workout['end_time'] - workout['start_time']) / 60)
+                    totals[user['username']]['duration'] += round(ride_duration_or_actual(workout) / 60)
 
             # Add workout to ride leaderboard
             for ride_id, ride in rides.items():
