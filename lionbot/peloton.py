@@ -254,13 +254,13 @@ def post_leaderboard(api, nl_user_id):
     workouts = filter(valid_workout, workouts)
     # Put in chrono order
     workouts = list(workouts)[::-1]
+
     rides = {
         workout['ride']['id']: {
             'id': workout['ride']['id'],
             'title': workout['ride']['title'],
             'instructor_name': workout['ride']['instructor']['name'],
             'start_time': workout['start_time'],
-            'air_time': workout['ride']['original_air_time'],
             'url': f'https://members.onepeloton.com/classes/cycling?modal='
                    f'classDetailsModal&classId={workout["ride"]["id"]}',
             'workouts': []
