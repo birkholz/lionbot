@@ -273,6 +273,10 @@ def post_leaderboard(api, nl_user_id):
     users = get_users_in_tag(api)
 
     for user in users:
+        # hide unknown account
+        if user['id'] in ['20e68e7334554f3cba761cb5f1f983a6']:
+            continue
+
         user_workouts = api.get_workouts(user['id'])
         user_workouts = filter(valid_workout, user_workouts)
 
