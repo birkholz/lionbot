@@ -9,7 +9,10 @@ import requests
 from sentry_sdk import capture_exception
 
 from lionbot.errors import DiscordError
-from lionbot.utils import send_discord_request
+from lionbot.utils import send_discord_request, init_sentry
+
+
+init_sentry()
 
 
 class PelotonAPI:
@@ -155,6 +158,9 @@ def is_within_interval(timestamp, interval):
 
 def is_previous_day(workout):
     # Determine previous day based on user's own timezone
+    if 'timezone' not in workout:
+        return False
+
     zi = ZoneInfo(workout['timezone'])
     yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
     # midnight yesterday
