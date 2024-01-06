@@ -427,7 +427,7 @@ def post_leaderboard(api, nl_user_id):
     json_body = {
         "content": "# \\#TheEggCarton Leaderboards\n"
                    "Ride leaderboards are based on dillwillhill's rides yesterday "
-                   "and include all matching rides from 12 hours before NL until now.\n"
+                   "and include all matching rides from 12 hours before the ride until now.\n"
                    "Endurance leaderboards and the PB callout are only yesterday's rides (in your timezone).\n"
                    "See https://discord.com/channels/726598830992261273/1157338211480256573/1172736947526045716 "
                    "for more info.",
