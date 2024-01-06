@@ -158,7 +158,7 @@ def is_within_interval(timestamp, interval):
 
 def is_previous_day(workout):
     # Determine previous day based on user's own timezone
-    if 'timezone' not in workout:
+    if not workout['timezone']:
         return False
 
     zi = ZoneInfo(workout['timezone'])
@@ -451,9 +451,10 @@ def get_and_post_workouts():
     api.login()
 
     nl_user_id = 'efc2317a6aad48218488a27bf8b0e460'
-
     post_workouts(api, nl_user_id)
-    post_leaderboard(api, nl_user_id)
+
+    leaderboard_user_id = os.environ.get('LEADERBOARD_USER_ID', '9d18f22c927743dfb18ee5a4f91af63f')
+    post_leaderboard(api, leaderboard_user_id)
 
 
 if __name__ == "__main__":
