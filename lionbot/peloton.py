@@ -93,8 +93,12 @@ def post_workouts(api, nl_user_id):
 
         avg_output = round(total_output / ride_duration_or_actual(workout))
 
-        instructor_name = workout['ride']['instructor']['name']
-        instructor_image = workout['ride']['instructor']['image_url']
+        if workout['ride']['instructor'] is None:
+            instructor_name = workout['ride']['description']
+            instructor_image = workout['ride']['image_url']
+        else:
+            instructor_name = workout['ride']['instructor']['name']
+            instructor_image = workout['ride']['instructor']['image_url']
 
         ride_title = workout['ride']['title']
 
