@@ -348,7 +348,7 @@ def post_leaderboard(api, nl_user_id):
         ride['workouts'] = ride['workouts'][:leaderboard_size]
 
         desc = f"""Instructor: {ride["instructor_name"]}\r
-        NL rode: <t:{ride["start_time"]}:F>\r
+        dillwillhill rode: <t:{ride["start_time"]}:F>\r
         Total riders: **{rider_count}**"""
 
         embed = {

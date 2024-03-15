@@ -7,6 +7,7 @@ import discord
 from discord import NotFound, PartialEmoji, CustomActivity, AllowedMentions, Intents, Embed
 from sentry_sdk import capture_exception
 from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker
 
 from lionbot.data import Guild, Stream
@@ -185,10 +186,16 @@ class LionBot(discord.Client):
         else:
             logging.error(f"Role id {stream.role_id} not found.")
 
-    async def on_raw_reaction_add(self, payload):
+    async def on_raw_reaction_add(self, payload, is_retry=False):
         if payload.user_id == self.user.id:
             return
-        guild = session.query(Guild).filter_by(id=payload.guild_id).first()
+        try:
+            guild = session.query(Guild).filter_by(id=payload.guild_id).first()
+        except OperationalError:
+            session.rollback()
+            if not is_retry:
+                await self.on_raw_reaction_add(payload, is_retry=True)
+            return
         if guild is None or payload.message_id != guild.role_message_id:
             return
 
