@@ -355,7 +355,7 @@ def post_leaderboard(api, nl_user_id):
         ride['workouts'] = ride['workouts'][:leaderboard_size]
 
         desc = f"""Instructor: {ride["instructor_name"]}\r
-        dillwillhill rode: <t:{ride["start_time"]}:F>\r
+        NL rode: <t:{ride["start_time"]}:F>\r
         Total riders: **{rider_count}**"""
 
         embed = {
@@ -437,7 +437,7 @@ def post_leaderboard(api, nl_user_id):
 
     json_body = {
         "content": "# \\#TheEggCarton Leaderboards\n"
-                   "Ride leaderboards are based on dillwillhill's rides yesterday "
+                   "Ride leaderboards are for NL's rides yesterday "
                    "and include all matching rides from 12 hours before the ride until now.\n"
                    "Endurance leaderboards and the PB callout are only yesterday's rides (in your timezone).\n"
                    "See https://discord.com/channels/726598830992261273/1157338211480256573/1172736947526045716 "
@@ -464,7 +464,7 @@ def get_and_post_workouts():
     nl_user_id = 'efc2317a6aad48218488a27bf8b0e460'
     post_workouts(api, nl_user_id)
 
-    leaderboard_user_id = os.environ.get('LEADERBOARD_USER_ID', '9d18f22c927743dfb18ee5a4f91af63f')
+    leaderboard_user_id = os.environ.get('LEADERBOARD_USER_ID', 'efc2317a6aad48218488a27bf8b0e460')
     post_leaderboard(api, leaderboard_user_id)
 
 
