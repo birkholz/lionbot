@@ -178,6 +178,10 @@ def is_previous_day(workout):
 
 def get_users_in_tag(api, after=None):
     data_response = api.get_users_in_tag('TheEggCarton', after=after)
+
+    if data_response['tag'] is None:
+        logging.error(f'Peloton API returned an empty tag response.')
+        sys.exit(1)
     users = [
         {
             'id': user['node']['id'],
