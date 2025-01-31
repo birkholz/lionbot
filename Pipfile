@@ -17,6 +17,7 @@ flask-sqlalchemy = "~=3.0"
 alembic = "~=1.4"
 twitterapi = "~=2.6"
 flask = "~=2.2"
+bs4 = "*"
 
 [requires]
 python_version = "3.11"
