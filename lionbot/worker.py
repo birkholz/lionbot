@@ -439,7 +439,11 @@ class LionBot(discord.Client):
                 "Twitch Subscriber: Tier 3",
                 "Moderator",
                 "Admin",
-                "LionBot"
+                "LionBot",
+                "j o s h",
+                "D N A",
+                "hapy birt",
+                "bot debugger"
             ]:
                 continue
             embed.add_field(name=role_name, value=str(count))
