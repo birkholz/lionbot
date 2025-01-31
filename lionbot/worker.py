@@ -432,6 +432,16 @@ class LionBot(discord.Client):
 
         embed = Embed(title="Role Counts")
         for role_name, count in ordered.items():
+            if role_name in [
+                "Twitch Subscriber",
+                "Twitch Subscriber: Tier 1",
+                "Twitch Subscriber: Tier 2",
+                "Twitch Subscriber: Tier 3",
+                "Moderator",
+                "Admin",
+                "LionBot"
+            ]:
+                continue
             embed.add_field(name=role_name, value=str(count))
 
         await message.channel.send(embed=embed, allowed_mentions=AllowedMentions.none())

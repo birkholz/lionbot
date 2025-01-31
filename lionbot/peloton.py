@@ -250,8 +250,8 @@ def pb_list_str(pb_dict):
 
 
 def ride_duration_or_actual(workout):
-    if workout['ride']['duration']:
-        return workout['ride']['duration']
+    # if workout['ride']['duration']:
+    #     return workout['ride']['duration']
 
     return workout['end_time'] - workout['start_time']
 
